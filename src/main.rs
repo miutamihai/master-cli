@@ -1,13 +1,25 @@
-mod args;
+mod commands;
+mod cli;
+mod git_commands;
 
 use clap::Parser;
-use args::Args;
+use crate::cli::Cli;
+use crate::commands::Commands::Git;
+use crate::git_commands::GitCommands;
 
 fn main() {
-    let args = Args::parse();
+    let cli = Cli::parse();
 
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name)
+    match &cli.command {
+        Git(git_command) => {
+            match git_command {
+                GitCommands::Init => {
+                    println!("running git init")
+                },
+                GitCommands::PR => {
+                    println!("creating github PR")
+                }
+            }
+        }
     }
 }
-
