@@ -1,7 +1,7 @@
 use clap::Subcommand;
 
 #[derive(Subcommand, Debug)]
-pub enum GitCommands {
+pub enum Commands {
     Init,
     PR
 }

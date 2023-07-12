@@ -1,5 +1,5 @@
 use clap::Subcommand;
-use crate::git_commands::{GitCommands};
+use crate::git::commands::Commands as GitCommands;
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
