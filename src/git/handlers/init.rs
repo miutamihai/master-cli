@@ -12,10 +12,8 @@ fn is_work_dir() -> bool {
     }
 }
 
-pub fn init() -> Option<()> {
+pub fn init() {
     println!("Running git init");
 
     println!("is work dir {}", is_work_dir());
-
-    None
 }
