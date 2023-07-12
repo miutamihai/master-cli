@@ -1,9 +1,9 @@
 [package]
-name = "master-cli"
-version = "0.1.0"
+name = "mm"
+version = "0.0.1"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Mihai Miuta <miuta.mihai@gmail.com>"]
+description = "CLI to handle common tasks"
 
 [dependencies]
 clap = { version = "4.3.11", features = ["derive"] }
