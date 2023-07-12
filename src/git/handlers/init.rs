@@ -47,6 +47,7 @@ struct GitConfig {
 
 pub fn init() {
     info!("Initializing git repository...");
+    // TODO: This command isn't awaited
     initialize_repo();
 
     let work_config = GitConfig {
