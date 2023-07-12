@@ -1,5 +1,5 @@
 [package]
-name = "mm"
+name = "master_maker"
 version = "0.0.1"
 edition = "2021"
 authors = ["Mihai Miuta <miuta.mihai@gmail.com>"]
@@ -7,3 +7,5 @@ description = "CLI to handle common tasks"
 
 [dependencies]
 clap = { version = "4.3.11", features = ["derive"] }
+fern = { version = "0.6.2", features = ["colored"] }
+log = "0.4.19"

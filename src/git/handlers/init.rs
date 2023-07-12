@@ -1,4 +1,5 @@
 use std::env;
+use log::info;
 
 fn is_work_dir() -> bool {
     let work_dir = "sevencode";
@@ -13,7 +14,11 @@ fn is_work_dir() -> bool {
 }
 
 pub fn init() {
-    println!("Running git init");
+    info!("Initializing git repository...");
 
-    println!("is work dir {}", is_work_dir());
+    if is_work_dir() {
+        info!("Using work credentials")
+    } else {
+        info!("Using personal credentials")
+    }
 }
