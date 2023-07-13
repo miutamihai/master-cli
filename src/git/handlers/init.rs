@@ -18,7 +18,15 @@ fn initialize_repo() {
    match Command::new("git")
        .arg("init")
        .spawn() {
-       Ok(_) => {}
+       Ok(mut child_command) => {
+           match child_command.wait() {
+               Ok(_) => {}
+               Err(_) => {
+                   error!("Failed to initialize git repository!");
+                   exit(1)
+               }
+           }
+       }
        Err(_) => {
            error!("Failed to initialize git repository!");
            exit(1)
@@ -32,7 +40,15 @@ fn git_config(key: &str, value: &str) {
         .arg(key)
         .arg(value)
         .spawn() {
-        Ok(_) => {}
+        Ok(mut child_process) => {
+            match child_process.wait() {
+                Ok(_) => {}
+                Err(_) => {
+                    error!("Failed to set git config {}!", key);
+                    exit(1)
+                }
+            }
+        }
         Err(_) => {
             error!("Failed to set git config {}!", key);
             exit(1)
@@ -47,7 +63,6 @@ struct GitConfig {
 
 pub fn init() {
     info!("Initializing git repository...");
-    // TODO: This command isn't awaited
     initialize_repo();
 
     let work_config = GitConfig {
