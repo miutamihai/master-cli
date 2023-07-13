@@ -1,6 +1,8 @@
 use std::env;
 use log::{error, info};
-use std::process::{Command, exit};
+use std::process::exit;
+use crate::common::run::{Input, run};
+
 
 fn is_work_dir() -> bool {
     let work_dir = "sevencode";
@@ -14,46 +16,31 @@ fn is_work_dir() -> bool {
     }
 }
 
+fn error_handler(message: &String) {
+    error!("{}", message);
+    exit(1)
+}
+
 fn initialize_repo() {
-   match Command::new("git")
-       .arg("init")
-       .spawn() {
-       Ok(mut child_command) => {
-           match child_command.wait() {
-               Ok(_) => {}
-               Err(_) => {
-                   error!("Failed to initialize git repository!");
-                   exit(1)
-               }
-           }
-       }
-       Err(_) => {
-           error!("Failed to initialize git repository!");
-           exit(1)
-       }
-   }
+    let input = Input {
+        cmd: "git".to_string(),
+        args: vec!["init".to_string()],
+        on_done: None,
+        on_error: Some(error_handler),
+    };
+
+    run(input).ok();
 }
 
 fn git_config(key: &str, value: &str) {
-    match Command::new("git")
-        .arg("config")
-        .arg(key)
-        .arg(value)
-        .spawn() {
-        Ok(mut child_process) => {
-            match child_process.wait() {
-                Ok(_) => {}
-                Err(_) => {
-                    error!("Failed to set git config {}!", key);
-                    exit(1)
-                }
-            }
-        }
-        Err(_) => {
-            error!("Failed to set git config {}!", key);
-            exit(1)
-        }
-    }
+    let input = Input {
+        cmd: "git".to_string(),
+        args: vec!["config".to_string(), key.to_string(), value.to_string()],
+        on_done: None,
+        on_error: Some(error_handler),
+    };
+
+    run(input).ok();
 }
 
 struct GitConfig {
@@ -67,12 +54,12 @@ pub fn init() {
 
     let work_config = GitConfig {
         name: "mihaisevencode",
-        email: "mihai.miuta@7code.ro"
+        email: "mihai.miuta@7code.ro",
     };
 
     let personal_config = GitConfig {
         name: "miutamihai",
-        email: "miuta.mihai@gmail.com"
+        email: "miuta.mihai@gmail.com",
     };
 
     if is_work_dir() {

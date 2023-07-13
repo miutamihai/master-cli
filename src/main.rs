@@ -2,6 +2,7 @@ mod commands;
 mod cli;
 mod git;
 mod setup_logger;
+mod common;
 
 use clap::Parser;
 use crate::cli::Cli;
