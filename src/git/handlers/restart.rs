@@ -9,22 +9,22 @@ fn get_args(destination: String, origin: String) -> Vec<Vec<String>> {
     vec![
         vec![
             string("checkout"),
-            origin
+            origin.clone()
         ],
         vec![
             string("pull"),
             string("origin"),
-            origin
+            origin.clone()
         ],
         vec![
             string("branch"),
             string("-D"),
-            destination
+            destination.clone()
         ],
         vec![
             string("checkout"),
             string("-b"),
-            destination
+            destination.clone()
         ]
     ]
 }
@@ -47,13 +47,14 @@ fn get_commands(destination: String, origin: String) -> Vec<Input> {
 
 pub fn restart() {
     info!("What's your destination branch?");
-    let mut destination = String::new();
-    let mut origin = String::new();
-    std::io::stdin().read_line(&mut destination).unwrap();
+    let destination = String::new();
+    let origin = String::new();
+    std::io::stdin().read_line(&mut destination.clone()).unwrap();
     info!("What's your origin branch?");
-    std::io::stdin().read_line(&mut origin).unwrap();
+    std::io::stdin().read_line(&mut origin.clone()).unwrap();
 
     get_commands(destination, origin)
         .into_iter()
-        .for_each(run)
+        .flat_map(run)
+        .collect()
 }
