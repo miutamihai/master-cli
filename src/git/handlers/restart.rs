@@ -45,13 +45,17 @@ fn get_commands(destination: String, origin: String) -> Vec<Input> {
         .collect()
 }
 
+fn get_input(message: &str) -> String {
+    info!("{}", message);
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).unwrap();
+
+    input.trim().to_string()
+}
+
 pub fn restart() {
-    info!("What's your destination branch?");
-    let mut destination = String::new();
-    let mut origin = String::new();
-    std::io::stdin().read_line(&mut destination).unwrap();
-    info!("What's your origin branch?");
-    std::io::stdin().read_line(&mut origin).unwrap();
+    let destination = get_input("What's your destination branch?");
+    let origin = get_input("What's your origin branch?");
 
     get_commands(destination, origin)
         .into_iter()
