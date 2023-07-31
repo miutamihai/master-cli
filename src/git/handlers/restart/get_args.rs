@@ -1,0 +1,23 @@
+pub fn get_args(destination: String, origin: String) -> Vec<Vec<String>> {
+    vec![
+        vec![
+            String::from("checkout"),
+            origin.clone()
+        ],
+        vec![
+            String::from("pull"),
+            String::from("origin"),
+            origin.clone()
+        ],
+        vec![
+            String::from("branch"),
+            String::from("-D"),
+            destination.clone()
+        ],
+        vec![
+            String::from("checkout"),
+            String::from("-b"),
+            destination.clone()
+        ]
+    ]
+}
