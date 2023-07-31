@@ -1,6 +1,9 @@
 use log::{info};
 use crate::common::run::{Input, run};
 
+const DESTINATION_MESSAGE: &str = "What's your destination branch? (branch you want to work with)";
+const ORIGIN_MESSAGE: &str = "What's your origin branch? (branch you want to rebase from)";
+
 fn get_args(destination: String, origin: String) -> Vec<Vec<String>> {
     vec![
         vec![
@@ -50,8 +53,8 @@ fn get_input(message: &str) -> String {
 }
 
 pub fn restart() {
-    let destination = get_input("What's your destination branch?");
-    let origin = get_input("What's your origin branch?");
+    let destination = get_input(DESTINATION_MESSAGE);
+    let origin = get_input(ORIGIN_MESSAGE);
 
     get_commands(destination, origin)
         .into_iter()
