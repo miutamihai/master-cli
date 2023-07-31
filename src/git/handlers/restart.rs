@@ -1,29 +1,25 @@
 use log::{info};
 use crate::common::run::{Input, run};
 
-fn string(val: &str) -> String {
-    val.to_string()
-}
-
 fn get_args(destination: String, origin: String) -> Vec<Vec<String>> {
     vec![
         vec![
-            string("checkout"),
+            String::from("checkout"),
             origin.clone()
         ],
         vec![
-            string("pull"),
-            string("origin"),
+            String::from("pull"),
+            String::from("origin"),
             origin.clone()
         ],
         vec![
-            string("branch"),
-            string("-D"),
+            String::from("branch"),
+            String::from("-D"),
             destination.clone()
         ],
         vec![
-            string("checkout"),
-            string("-b"),
+            String::from("checkout"),
+            String::from("-b"),
             destination.clone()
         ]
     ]
@@ -31,7 +27,7 @@ fn get_args(destination: String, origin: String) -> Vec<Vec<String>> {
 
 fn build_input(args: Vec<String>) -> Input {
     Input {
-        cmd: string("git"),
+        cmd: String::from("git"),
         args,
         on_done: None,
         on_error: None
