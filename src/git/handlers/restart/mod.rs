@@ -2,20 +2,22 @@ use crate::common::run::run;
 use crate::common::validate::validate;
 use crate::git::handlers::restart::get_commands::get_commands;
 use crate::git::handlers::restart::get_input::get_input;
+use crate::git::handlers::restart::message::{DestinationMessage, OriginMessage};
+use crate::common::message::Message;
 
 mod build_input;
 mod get_args;
 mod get_commands;
 mod get_input;
-
-const DESTINATION_MESSAGE: &str = "What's your destination branch? (branch you want to work with)";
-const ORIGIN_MESSAGE: &str = "What's your origin branch? (branch you want to rebase from)";
+mod message;
 
 pub fn restart() {
-    let destination = get_input(DESTINATION_MESSAGE);
-    validate(destination != "", "Destination must not be empty!");
-    let origin = get_input(ORIGIN_MESSAGE);
-    validate(origin != "", "Origin must not be empty!");
+    let destination_messages = <Message as DestinationMessage>::build();
+    let origin_messages = <Message as OriginMessage>::build();
+    let destination = get_input(destination_messages.prompt);
+    validate(destination != "", destination_messages.error);
+    let origin = get_input(origin_messages.prompt);
+    validate(origin != "", origin_messages.error);
 
     get_commands(destination, origin)
         .into_iter()

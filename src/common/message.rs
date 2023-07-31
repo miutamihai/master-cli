@@ -1,8 +1,17 @@
 pub trait MessageBuilder {
-    fn build(prompt: &str, error: &str) -> Message;
+    fn from_strings(prompt: &str, error: &str) -> Message;
 }
 
 pub struct Message {
-    prompt: String,
-    error: String
+    pub prompt: String,
+    pub error: String
+}
+
+impl MessageBuilder for Message {
+    fn from_strings(prompt: &str, error: &str) -> Message {
+        Message {
+            prompt: String::from(prompt),
+            error: String::from(error)
+        }
+    }
 }
