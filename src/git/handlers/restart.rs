@@ -1,4 +1,5 @@
-use log::{info};
+use log::info;
+use crate::common::validate::validate;
 use crate::common::run::{Input, run};
 
 const DESTINATION_MESSAGE: &str = "What's your destination branch? (branch you want to work with)";
@@ -54,7 +55,9 @@ fn get_input(message: &str) -> String {
 
 pub fn restart() {
     let destination = get_input(DESTINATION_MESSAGE);
+    validate(destination != "", "Destination must not be empty!");
     let origin = get_input(ORIGIN_MESSAGE);
+    validate(origin != "", "Origin must not be empty!");
 
     get_commands(destination, origin)
         .into_iter()
