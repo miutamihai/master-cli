@@ -11,8 +11,8 @@ pub fn match_command(command: &Commands) {
         Commands::PR => {
             pr();
         }
-        Commands::Restart => {
-            restart();
+        Commands::Restart {destination, origin} => {
+            restart(destination, origin);
         }
     }
 }

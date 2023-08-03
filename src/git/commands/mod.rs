@@ -4,5 +4,11 @@ use clap::Subcommand;
 pub enum Commands {
     Init,
     PR,
-    Restart,
+    Restart {
+        #[arg(short, long)]
+        origin: String,
+
+        #[arg(short, long)]
+        destination: String
+    },
 }

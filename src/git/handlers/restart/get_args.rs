@@ -1,4 +1,4 @@
-pub fn get_args(destination: String, origin: String) -> Vec<Vec<String>> {
+pub fn get_args(destination: &String, origin: &String) -> Vec<Vec<String>> {
     vec![
         vec![
             String::from("checkout"),
