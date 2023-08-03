@@ -1,6 +1,21 @@
 image: "rust:latest"
 
-test:cargo:
+stages:
+  - test
+  - build
+
+test:
   script:
     - rustc --version && cargo --version  # Print version info for debugging
     - cargo test --workspace --verbose
+
+build:
+  stage: build
+  image: rust:latest
+  script:
+    - cargo build --release
+  artifacts:
+    paths:
+      - target/release/mm
+  only:
+    - master
