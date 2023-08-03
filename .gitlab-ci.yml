@@ -13,14 +13,11 @@ build:
   stage: build
   script:
     - rustup target add x86_64-unknown-linux-gnu  # Linux
-    - rustup target add x86_64-pc-windows-msvc   # Windows
     - rustup target add aarch64-apple-darwin      # macOS
     - cargo build --release --target x86_64-unknown-linux-gnu
-    - cargo build --release --target x86_64-pc-windows-msvc
     - cargo build --release --target aarch64-apple-darwin
   artifacts:
     paths:
       - target/x86_64-unknown-linux-gnu/release/mm
-      - target/x86_64-pc-windows-msvc/release/mm.exe
       - target/aarch64-apple-darwin/release/mm
   only:
