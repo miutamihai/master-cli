@@ -4,12 +4,21 @@ type SuccessHandler = fn() -> ();
 
 type ErrorHandler = fn(&String) -> ();
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Input {
     pub(crate) cmd: String,
     pub(crate) args: Vec<String>,
     pub(crate) on_done: Option<SuccessHandler>,
     pub(crate) on_error: Option<ErrorHandler>,
+}
+
+impl PartialEq for Input {
+    fn eq(&self, other: &Self) -> bool {
+        let cmd_equals = self.cmd == other.cmd;
+        let args_equal = self.args == other.args;
+
+        cmd_equals && args_equal
+    }
 }
 
 fn build_command(cmd: String, args: Vec<String>) -> Command {
