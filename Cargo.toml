@@ -9,3 +9,6 @@ description = "CLI to handle a master maker's common tasks"
 clap = { version = "4.3.11", features = ["derive"] }
 fern = { version = "0.6.2", features = ["colored"] }
 log = "0.4.19"
+toml = "0.7.6"
+serde = "1.0.179"
+serde_derive = "1.0.179"
