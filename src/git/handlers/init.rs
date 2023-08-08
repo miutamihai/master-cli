@@ -7,7 +7,7 @@ use crate::embedded::settings::get::get;
 
 
 fn is_work_dir(config: &Config) -> bool {
-    let work_dir = &config.work_dir;
+    let work_dir = &config.git.work_dir;
 
     match env::current_dir() {
         Ok(current_dir) => {
@@ -53,7 +53,7 @@ struct GitConfig {
 fn validate_config(config: &Config) {
     let config_settings = get().config;
 
-    if config.work_dir == config_settings.default_value {
+    if config.git.work_dir == config_settings.default_value {
         error!("`work_dir` value not set!");
         error!("Please run: `mm config --name work_dir --value <your_work_dir>");
         exit(1)
