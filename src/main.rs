@@ -7,8 +7,7 @@ mod config;
 
 use clap::Parser;
 use crate::cli::Cli;
-use crate::commands::Commands;
-use crate::commands::Commands::Git;
+use crate::commands::Commands::{Git, Config};
 use crate::config::get_or_default::get_or_default;
 use crate::setup_logger::setup_logger;
 
@@ -23,7 +22,7 @@ fn main() {
             git::match_command::match_command(git_command, &config);
         },
 
-        Commands::Config { name, value } => {
+        Config { name, value } => {
             config::handle::handle(name, value);
         }
     }
