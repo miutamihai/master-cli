@@ -2,15 +2,16 @@ use std::env;
 use log::{error, info};
 use std::process::exit;
 use crate::common::run::{Input, run};
+use crate::config::model::Config;
 
 
-fn is_work_dir() -> bool {
-    let work_dir = "sevencode";
+fn is_work_dir(config: &Config) -> bool {
+    let work_dir = &config.work_dir;
 
     match env::current_dir() {
         Ok(current_dir) => {
             current_dir.components()
-                .any(|value| value.as_os_str().eq(work_dir))
+                .any(|value| value.as_os_str().to_str().unwrap().eq(work_dir))
         }
         Err(_) => { false }
     }
@@ -48,7 +49,7 @@ struct GitConfig {
     email: &'static str,
 }
 
-pub fn init() {
+pub fn init(config: &Config) {
     info!("Initializing git repository...");
     initialize_repo();
 
@@ -62,7 +63,7 @@ pub fn init() {
         email: "miuta.mihai@gmail.com",
     };
 
-    if is_work_dir() {
+    if is_work_dir(config) {
         info!("Using work credentials");
         git_config("user.name", work_config.name);
         git_config("user.email", work_config.email);

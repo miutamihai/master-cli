@@ -8,18 +8,18 @@ mod config;
 use clap::Parser;
 use crate::cli::Cli;
 use crate::commands::Commands::Git;
-use crate::config::setup::setup;
+use crate::config::get_or_default::get_or_default;
 use crate::setup_logger::setup_logger;
 
 fn main() {
     setup_logger();
 
     let cli = Cli::parse();
-    let _config = setup();
+    let config = get_or_default();
 
     match &cli.command {
         Git(git_command) => {
-            git::match_command::match_command(git_command);
+            git::match_command::match_command(git_command, &config);
         }
     }
 }
