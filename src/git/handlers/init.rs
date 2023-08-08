@@ -3,6 +3,7 @@ use log::{error, info};
 use std::process::exit;
 use crate::common::run::{Input, run};
 use crate::config::model::Config;
+use crate::embedded::settings::get::get;
 
 
 fn is_work_dir(config: &Config) -> bool {
@@ -49,8 +50,19 @@ struct GitConfig {
     email: &'static str,
 }
 
+fn validate_config(config: &Config) {
+    let config_settings = get().config;
+
+    if config.work_dir == config_settings.default_value {
+        error!("`work_dir` value not set!");
+        error!("Please run: `mm config --name work_dir --value <your_work_dir>");
+        exit(1)
+    }
+}
+
 pub fn init(config: &Config) {
     info!("Initializing git repository...");
+    validate_config(&config);
     initialize_repo();
 
     let work_config = GitConfig {
