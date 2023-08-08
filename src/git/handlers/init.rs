@@ -3,7 +3,7 @@ use log::{error, info};
 use std::process::exit;
 use crate::common::run::{Input, run};
 use crate::config::model::Config;
-use crate::embedded::settings::get::get;
+use crate::config::validate::{Rule, validate};
 
 
 fn is_work_dir(config: &Config) -> bool {
@@ -45,19 +45,14 @@ fn git_config(key: &str, value: &str) {
     run(input).ok();
 }
 
-struct GitConfig {
-    name: &'static str,
-    email: &'static str,
-}
-
 fn validate_config(config: &Config) {
-    let config_settings = get().config;
-
-    if config.git.work_dir == config_settings.default_value {
-        error!("`work_dir` value not set!");
-        error!("Please run: `mm config --name work_dir --value <your_work_dir>");
-        exit(1)
-    }
+    validate(vec![
+        Rule { name: "git.work_dir", value: config.git.work_dir.clone() },
+        Rule { name: "git.personal_credentials.name", value: config.git.personal_credentials.name.clone() },
+        Rule { name: "git.personal_credentials.email", value: config.git.personal_credentials.email.clone() },
+        Rule { name: "git.work_credentials.name", value: config.git.work_credentials.name.clone() },
+        Rule { name: "git.work_credentials.email", value: config.git.work_credentials.email.clone() },
+    ])
 }
 
 pub fn init(config: &Config) {
@@ -65,23 +60,13 @@ pub fn init(config: &Config) {
     validate_config(&config);
     initialize_repo();
 
-    let work_config = GitConfig {
-        name: "mihaisevencode",
-        email: "mihai.miuta@7code.ro",
-    };
-
-    let personal_config = GitConfig {
-        name: "miutamihai",
-        email: "miuta.mihai@gmail.com",
-    };
-
     if is_work_dir(config) {
         info!("Using work credentials");
-        git_config("user.name", work_config.name);
-        git_config("user.email", work_config.email);
+        git_config("user.name", &config.git.work_credentials.name);
+        git_config("user.email", &config.git.work_credentials.email);
     } else {
         info!("Using personal credentials");
-        git_config("user.name", personal_config.name);
-        git_config("user.email", personal_config.email);
+        git_config("user.name", &config.git.personal_credentials.name);
+        git_config("user.email", &config.git.personal_credentials.email);
     }
 }
