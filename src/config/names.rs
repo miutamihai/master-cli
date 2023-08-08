@@ -1,5 +1,5 @@
-use std::process::exit;
 use log::error;
+use std::process::exit;
 
 pub trait FromString {
     fn from_string(input: String) -> Self;

@@ -1,7 +1,7 @@
+use crate::config::names::ConfigNames;
 use crate::embedded::settings::get::get;
 use log::error;
 use std::process::exit;
-use crate::config::names::ConfigNames;
 
 pub struct Rule {
     pub(crate) name: ConfigNames,
