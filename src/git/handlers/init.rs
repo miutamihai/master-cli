@@ -4,6 +4,7 @@ use crate::config::validate::{validate, Rule};
 use log::{error, info};
 use std::env;
 use std::process::exit;
+use crate::config::names::ConfigNames;
 
 fn is_work_dir(config: &Config) -> bool {
     let work_dir = &config.git.work_dir;
@@ -46,34 +47,34 @@ fn git_config(key: &str, value: &str) {
 fn validate_config(config: &Config) {
     validate(vec![
         Rule {
-            name: "git.work_dir",
+            name: ConfigNames::GitWorkDir,
             value: config.git.work_dir.clone(),
         },
         Rule {
-            name: "git.personal_credentials.name",
+            name: ConfigNames::GitPersonalCredsName,
             value: config.git.personal_credentials.name.clone(),
         },
         Rule {
-            name: "git.personal_credentials.email",
+            name: ConfigNames::GitPersonalCredsEmail,
             value: config.git.personal_credentials.email.clone(),
         },
         Rule {
-            name: "git.work_credentials.name",
+            name: ConfigNames::GitWorkCredsName,
             value: config.git.work_credentials.name.clone(),
         },
         Rule {
-            name: "git.work_credentials.email",
+            name: ConfigNames::GitWorkCredsEmail,
             value: config.git.work_credentials.email.clone(),
         },
     ])
 }
 
-pub fn init(config: &Config) {
+pub fn init(config: Config) {
     info!("Initializing git repository...");
     validate_config(&config);
     initialize_repo();
 
-    if is_work_dir(config) {
+    if is_work_dir(&config) {
         info!("Using work credentials");
         git_config("user.name", &config.git.work_credentials.name);
         git_config("user.email", &config.git.work_credentials.email);

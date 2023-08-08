@@ -1,9 +1,10 @@
 use crate::embedded::settings::get::get;
 use log::error;
 use std::process::exit;
+use crate::config::names::ConfigNames;
 
 pub struct Rule {
-    pub(crate) name: &'static str,
+    pub(crate) name: ConfigNames,
     pub(crate) value: String,
 }
 
@@ -12,10 +13,10 @@ pub fn validate(values: Vec<Rule>) {
 
     values.iter().for_each(|rule| {
         if rule.value == default_value {
-            error!("`{}` value not set!", rule.name);
+            error!("`{}` value not set!", rule.name.to_string());
             error!(
                 "Please run: `mm config --name {} --value <your_value>`",
-                rule.name
+                rule.name.to_string()
             );
             exit(1)
         }

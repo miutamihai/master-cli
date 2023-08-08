@@ -20,11 +20,11 @@ fn main() {
 
     match &cli.command {
         Git(git_command) => {
-            git::match_command::match_command(git_command, &config);
+            git::match_command::match_command(git_command, config);
         }
 
         Config { name, value } => {
-            config::handle::handle(name, value);
+            config::handle::handle(name, value, config);
         }
     }
 }
