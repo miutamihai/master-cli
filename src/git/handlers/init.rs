@@ -1,20 +1,18 @@
-use std::env;
-use log::{error, info};
-use std::process::exit;
-use crate::common::run::{Input, run};
+use crate::common::run::{run, Input};
 use crate::config::model::Config;
-use crate::config::validate::{Rule, validate};
-
+use crate::config::validate::{validate, Rule};
+use log::{error, info};
+use std::env;
+use std::process::exit;
 
 fn is_work_dir(config: &Config) -> bool {
     let work_dir = &config.git.work_dir;
 
     match env::current_dir() {
-        Ok(current_dir) => {
-            current_dir.components()
-                .any(|value| value.as_os_str().to_str().unwrap().eq(work_dir))
-        }
-        Err(_) => { false }
+        Ok(current_dir) => current_dir
+            .components()
+            .any(|value| value.as_os_str().to_str().unwrap().eq(work_dir)),
+        Err(_) => false,
     }
 }
 
@@ -47,11 +45,26 @@ fn git_config(key: &str, value: &str) {
 
 fn validate_config(config: &Config) {
     validate(vec![
-        Rule { name: "git.work_dir", value: config.git.work_dir.clone() },
-        Rule { name: "git.personal_credentials.name", value: config.git.personal_credentials.name.clone() },
-        Rule { name: "git.personal_credentials.email", value: config.git.personal_credentials.email.clone() },
-        Rule { name: "git.work_credentials.name", value: config.git.work_credentials.name.clone() },
-        Rule { name: "git.work_credentials.email", value: config.git.work_credentials.email.clone() },
+        Rule {
+            name: "git.work_dir",
+            value: config.git.work_dir.clone(),
+        },
+        Rule {
+            name: "git.personal_credentials.name",
+            value: config.git.personal_credentials.name.clone(),
+        },
+        Rule {
+            name: "git.personal_credentials.email",
+            value: config.git.personal_credentials.email.clone(),
+        },
+        Rule {
+            name: "git.work_credentials.name",
+            value: config.git.work_credentials.name.clone(),
+        },
+        Rule {
+            name: "git.work_credentials.email",
+            value: config.git.work_credentials.email.clone(),
+        },
     ])
 }
 

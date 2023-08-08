@@ -1,11 +1,11 @@
+use crate::config::config_path::config_path;
+use crate::config::model::{Config, Git, GitCredentials};
+use crate::embedded::settings::get::get;
+use log::{error, info};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::process::exit;
-use log::{error, info};
-use crate::config::config_path::config_path;
-use crate::config::model::{Config, Git, GitCredentials};
-use crate::embedded::settings::get::get;
 
 fn default() -> Config {
     let value = String::from(get().config.default_value);
@@ -15,13 +15,13 @@ fn default() -> Config {
             work_dir: value.clone(),
             work_credentials: GitCredentials {
                 name: value.clone(),
-                email: value.clone()
+                email: value.clone(),
             },
             personal_credentials: GitCredentials {
                 name: value.clone(),
-                email: value.clone()
+                email: value.clone(),
             },
-        }
+        },
     }
 }
 

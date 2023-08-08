@@ -16,8 +16,7 @@ fn get_logger(colors: ColoredLevelConfig) -> Result<(), SetLoggerError> {
 }
 
 fn get_color_config() -> ColoredLevelConfig {
-    ColoredLevelConfig::new()
-        .info(Color::Cyan)
+    ColoredLevelConfig::new().info(Color::Cyan)
 }
 
 pub fn setup_logger() {

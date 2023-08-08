@@ -37,15 +37,13 @@ fn wait_for_child(mut child: Child, input: Input) -> Result<(), String> {
 
             Ok(())
         }
-        Err(error) => { Err(error.to_string()) }
+        Err(error) => Err(error.to_string()),
     }
 }
 
 pub fn run(input: Input) -> Result<(), String> {
     match build_command(input.clone().cmd, input.clone().args).spawn() {
-        Ok(child) => {
-            wait_for_child(child, input)
-        }
+        Ok(child) => wait_for_child(child, input),
         Err(error) => {
             if let Some(on_error) = input.on_error {
                 on_error(&error.to_string());

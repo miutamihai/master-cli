@@ -23,42 +23,31 @@ mod tests {
         let expected = vec![
             Input {
                 cmd: String::from("git"),
-                args: str_vec_to_string_vec(
-                    vec!["checkout", origin.clone()]
-                ),
+                args: str_vec_to_string_vec(vec!["checkout", origin.clone()]),
                 on_done: None,
-                on_error: None
+                on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: str_vec_to_string_vec(
-                    vec!["pull", "origin", origin.clone()]
-                ),
+                args: str_vec_to_string_vec(vec!["pull", "origin", origin.clone()]),
                 on_done: None,
-                on_error: None
+                on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: str_vec_to_string_vec(
-                    vec!["branch", "-D", destination.clone()]
-                ),
+                args: str_vec_to_string_vec(vec!["branch", "-D", destination.clone()]),
                 on_done: None,
-                on_error: None
+                on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: str_vec_to_string_vec(
-                    vec!["checkout", "-b", destination.clone()]
-                ),
+                args: str_vec_to_string_vec(vec!["checkout", "-b", destination.clone()]),
                 on_done: None,
-                on_error: None
+                on_error: None,
             },
         ];
 
-        let actual = get_commands(
-            &String::from(destination),
-            &String::from(origin)
-        );
+        let actual = get_commands(&String::from(destination), &String::from(origin));
 
         assert_eq!(expected, actual)
     }

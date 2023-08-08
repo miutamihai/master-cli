@@ -12,7 +12,10 @@ pub fn match_command(command: &Commands, config: &Config) {
         Commands::PR => {
             pr();
         }
-        Commands::Restart {destination, origin} => {
+        Commands::Restart {
+            destination,
+            origin,
+        } => {
             restart(destination, origin);
         }
     }

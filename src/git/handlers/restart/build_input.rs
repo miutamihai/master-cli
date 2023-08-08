@@ -17,9 +17,7 @@ mod tests {
 
     #[test]
     fn build_input_test() {
-        let args = str_vec_to_string_vec(
-            vec!["checkout", "master"]
-        );
+        let args = str_vec_to_string_vec(vec!["checkout", "master"]);
 
         let expected = Input {
             cmd: String::from("git"),
