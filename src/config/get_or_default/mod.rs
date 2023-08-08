@@ -1,9 +1,13 @@
 use std::process::exit;
 use log::error;
-use crate::config::create_default::create_default;
-use crate::config::get::get;
+use crate::config::get_or_default::create_default::create_default;
+use crate::config::get_or_default::get::get;
+use crate::config::get_or_default::parse::parse;
 use crate::config::model::Config;
-use crate::config::parse::parse;
+
+mod get;
+mod parse;
+mod create_default;
 
 pub fn get_or_default() -> Config {
     match get() {
