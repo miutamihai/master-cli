@@ -5,10 +5,13 @@ use std::process::exit;
 use log::{error, info};
 use crate::config::config_path::config_path;
 use crate::config::model::Config;
+use crate::embedded::settings::get::get;
 
 fn default() -> Config {
+    let value = get();
+
     Config {
-        work_dir: String::from("work")
+        work_dir: String::from(value.config.default_value)
     }
 }
 

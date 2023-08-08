@@ -4,6 +4,7 @@ mod git;
 mod setup_logger;
 mod common;
 mod config;
+mod embedded;
 
 use clap::Parser;
 use crate::cli::Cli;
