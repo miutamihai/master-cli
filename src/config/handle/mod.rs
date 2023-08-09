@@ -1,5 +1,10 @@
+use crate::config::config_path::config_path;
 use crate::config::model::Config;
 use crate::config::names::{ConfigNames, FromString};
+use fs::write;
+use log::{error, info};
+use std::fs;
+use toml::to_string;
 
 pub fn handle(name: &String, value: &String, config: Config) {
     let mut copy = config;
@@ -22,4 +27,15 @@ pub fn handle(name: &String, value: &String, config: Config) {
             copy.git.work_credentials.email = value.clone();
         }
     };
+
+    let content = to_string(&copy).unwrap();
+
+    match write(config_path(), content) {
+        Ok(_) => {
+            info!("Changed config {} to {}", name, value)
+        }
+        Err(_) => {
+            error!("Failed to write config change!")
+        }
+    }
 }
