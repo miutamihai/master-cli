@@ -1,5 +1,4 @@
-use log::error;
-use std::process::exit;
+use crate::common::exit_with_errors::exit_with_errors;
 
 pub trait FromString {
     fn from_string(input: String) -> Self;
@@ -35,10 +34,7 @@ impl FromString for ConfigNames {
             "git.personal_credentials.email" => ConfigNames::GitPersonalCredsEmail,
             "git.work_credentials.name" => ConfigNames::GitWorkCredsName,
             "git.work_credentials.email" => ConfigNames::GitWorkCredsEmail,
-            _ => {
-                error!("Unknown config name: {}", static_string);
-                exit(1)
-            }
+            _ => exit_with_errors(format!("Unknown config name: {}", static_string)),
         }
     }
 }

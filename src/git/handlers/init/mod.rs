@@ -5,7 +5,6 @@ use crate::git::handlers::init::is_work_dir::is_work_dir;
 use crate::git::handlers::init::validate_config::validate_config;
 use log::info;
 
-mod error_handler;
 mod git_config;
 mod initialize_repo;
 mod is_work_dir;
