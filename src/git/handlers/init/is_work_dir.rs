@@ -1,16 +1,13 @@
 use crate::config::model::Config;
 use std::env;
 use std::path::Path;
-use std::process::exit;
-use log::error;
+use crate::common::exit_with_error::exit_with_error;
 
 pub fn is_work_dir(config: &Config) -> bool {
     let work_dir_path = Path::new(&config.git.work_dir);
 
     if !work_dir_path.exists() {
-        error!("Current `git.work_dir` path doesn't exist");
-
-        exit(1)
+        exit_with_error("Current `git.work_dir` path doesn't exist")
     }
 
     match env::current_dir() {

@@ -5,7 +5,7 @@ use log::{error, info};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
-use std::process::exit;
+use crate::common::exit_with_error::exit_with_error;
 
 fn default() -> Config {
     let value = String::from(get().config.default_value);
@@ -29,9 +29,7 @@ pub fn create_default() -> std::io::Result<()> {
     let path = config_path();
     if let Some(parent) = &path.parent() {
         if fs::create_dir_all(parent).is_err() {
-            error!("Failed to create config directory");
-
-            exit(1)
+            exit_with_error("Failed to create config directory")
         }
     }
 
