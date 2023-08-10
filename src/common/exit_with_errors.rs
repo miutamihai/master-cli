@@ -1,5 +1,6 @@
 use std::process::exit;
 
+use crate::common::str_vec_to_string_vec::str_vec_to_string_vec;
 use log::error;
 
 pub trait AsStringVec {
@@ -14,7 +15,7 @@ impl AsStringVec for &'static str {
 
 impl AsStringVec for Vec<&'static str> {
     fn as_string_vec(&self) -> Vec<String> {
-        self.clone().iter().map(|value| value.to_string()).collect()
+        str_vec_to_string_vec(self.clone())
     }
 }
 
