@@ -9,8 +9,8 @@ pub enum Commands {
     #[command(about = "Change config option")]
     Config {
         #[arg(short, long)]
-        name: String,
+        name: Option<String>,
         #[arg(short, long)]
-        value: String,
+        value: Option<String>,
     },
 }

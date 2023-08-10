@@ -1,41 +1,28 @@
-use crate::config::config_path::config_path;
+use crate::common::exit_with_errors::exit_with_errors;
+use crate::config::handle::in_editor::in_editor;
+use crate::config::handle::inline::inline;
 use crate::config::model::Config;
-use crate::config::names::{ConfigNames, FromString};
-use fs::write;
-use log::{error, info};
-use std::fs;
-use toml::to_string;
 
-pub fn handle(name: &String, value: &String, config: Config) {
-    let mut copy = config;
-    let config_name = ConfigNames::from_string(name.clone());
+mod inline;
+mod in_editor;
 
-    match config_name {
-        ConfigNames::GitWorkDir => {
-            copy.git.work_dir = value.clone();
-        }
-        ConfigNames::GitPersonalCredsName => {
-            copy.git.personal_credentials.name = value.clone();
-        }
-        ConfigNames::GitPersonalCredsEmail => {
-            copy.git.personal_credentials.email = value.clone();
-        }
-        ConfigNames::GitWorkCredsName => {
-            copy.git.work_credentials.name = value.clone();
-        }
-        ConfigNames::GitWorkCredsEmail => {
-            copy.git.work_credentials.email = value.clone();
-        }
-    };
+fn build_message(missing: &'static str, existing: &'static str) -> String {
+    format!("Argument `--{}` is required when `--{}` is passed", missing, existing)
+}
 
-    let content = to_string(&copy).unwrap();
-
-    match write(config_path(), content) {
-        Ok(_) => {
-            info!("Changed config {} to {}", name, value)
+pub fn handle(name_option: &Option<String>, value_option: &Option<String>, config: Config) {
+    match (name_option, value_option) {
+        (None, None) => {
+            in_editor()
         }
-        Err(_) => {
-            error!("Failed to write config change!")
+        (Some(name), Some(value)) => {
+            inline(name, value, config)
+        }
+        (None, Some(_)) => {
+            exit_with_errors(build_message("name", "value"))
+        }
+        (Some(_), None) => {
+            exit_with_errors(build_message("value", "name"))
         }
     }
 }
