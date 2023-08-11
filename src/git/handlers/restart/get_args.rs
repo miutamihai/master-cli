@@ -1,4 +1,4 @@
-use crate::common::exit_with_errors::AsStringVec;
+use crate::common::traits::as_string_vec::AsStringVec;
 
 fn build_static(args: Vec<&'static str>, dynamic: String) -> Vec<String> {
     [args.as_string_vec(), vec![dynamic]].concat()
