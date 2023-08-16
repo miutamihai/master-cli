@@ -4,6 +4,7 @@ use serde_derive::{Deserialize, Serialize};
 pub struct GitCredentials {
     pub(crate) name: String,
     pub(crate) email: String,
+    pub(crate) ssh_key: String,
 }
 
 #[derive(Deserialize, Serialize)]

@@ -16,10 +16,12 @@ fn default() -> Config {
             work_credentials: GitCredentials {
                 name: value.clone(),
                 email: value.clone(),
+                ssh_key: value.clone(),
             },
             personal_credentials: GitCredentials {
                 name: value.clone(),
                 email: value.clone(),
+                ssh_key: value.clone(),
             },
         },
     }
@@ -35,13 +37,16 @@ pub fn create_default() -> std::io::Result<()> {
 
     match File::create(&path) {
         Ok(mut file) => {
-            info!("Created file at {}", path.to_str().unwrap());
+            info!("Created config file at {}", path.to_str().unwrap());
             let content = toml::to_string(&default()).unwrap();
 
             file.write_all(content.as_bytes())
         }
         Err(error) => {
-            error!("Failed to create file because: {}", error.to_string());
+            error!(
+                "Failed to create config file because: {}",
+                error.to_string()
+            );
             Ok(())
         }
     }

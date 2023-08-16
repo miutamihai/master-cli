@@ -1,5 +1,5 @@
 use crate::common::exit_with_errors::exit_with_errors;
-use crate::common::run::{Input, run};
+use crate::common::run::{run, Input};
 
 pub fn initialize_repo() {
     let input = Input {
