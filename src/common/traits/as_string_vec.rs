@@ -25,3 +25,11 @@ impl AsStringVec for Vec<String> {
         self.clone()
     }
 }
+
+impl AsStringVec for &String {
+    fn as_string_vec(&self) -> Vec<String> {
+        let clone = (*self).clone();
+
+        vec![clone]
+    }
+}
