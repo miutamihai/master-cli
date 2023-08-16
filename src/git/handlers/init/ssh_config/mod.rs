@@ -9,7 +9,7 @@ mod build;
 pub mod model;
 mod write;
 
-pub fn save(key_path: &String, key_type: Type) {
+pub fn setup(key_path: &String, key_type: Type) {
     let content = build(key_path);
 
     match write(content, key_type) {
