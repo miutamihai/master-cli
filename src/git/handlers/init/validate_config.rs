@@ -17,12 +17,20 @@ pub fn validate_config(config: &Config) {
             value: config.git.personal_credentials.email.clone(),
         },
         Rule {
+            name: ConfigNames::GitPersonalCredsSshKey,
+            value: config.git.personal_credentials.ssh_key.clone(),
+        },
+        Rule {
             name: ConfigNames::GitWorkCredsName,
             value: config.git.work_credentials.name.clone(),
         },
         Rule {
             name: ConfigNames::GitWorkCredsEmail,
             value: config.git.work_credentials.email.clone(),
+        },
+        Rule {
+            name: ConfigNames::GitWorkCredsSshKey,
+            value: config.git.work_credentials.ssh_key.clone(),
         },
     ])
 }
