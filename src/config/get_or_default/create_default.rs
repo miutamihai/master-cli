@@ -1,11 +1,13 @@
+use std::fs;
+use std::fs::File;
+use std::io::Write;
+
+use log::info;
+
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::config::config_path::config_path;
 use crate::config::model::{Config, Git, GitCredentials};
 use crate::embedded::settings::get::get;
-use log::{error, info};
-use std::fs;
-use std::fs::File;
-use std::io::Write;
 
 fn default() -> Config {
     let value = String::from(get().config.default_value);
@@ -42,12 +44,9 @@ pub fn create_default() -> std::io::Result<()> {
 
             file.write_all(content.as_bytes())
         }
-        Err(error) => {
-            error!(
-                "Failed to create config file because: {}",
-                error.to_string()
-            );
-            Ok(())
-        }
+        Err(error) => exit_with_errors(format!(
+            "Failed to create config file because: {}",
+            error.to_string()
+        )),
     }
 }
