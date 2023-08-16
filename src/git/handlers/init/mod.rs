@@ -26,7 +26,7 @@ pub fn init(config: Config) {
         git_config("user.email", &config.git.work_credentials.email);
         git_config(
             "core.sshCommand",
-            &format!("ssh -F {}", ssh_config_path.to_str().unwrap()),
+            &format!("ssh -F \"{}\"", ssh_config_path),
         );
     } else {
         info!("Initializing git repository...");
@@ -37,7 +37,7 @@ pub fn init(config: Config) {
         git_config("user.email", &config.git.personal_credentials.email);
         git_config(
             "core.sshCommand",
-            &format!("ssh -F {}", ssh_config_path.to_str().unwrap()),
+            &format!("ssh -F \"{}\"", ssh_config_path),
         );
     }
 }

@@ -30,7 +30,7 @@ pub fn write(content: String, key_type: Type) -> std::io::Result<PathBuf> {
             info!("Created ssh config at {}", path.to_str().unwrap());
 
             file.write_all(content.as_bytes())?;
-            Ok(path)
+            Ok(PathBuf::from(path))
         }
         Err(error) => exit_with_errors(format!(
             "Failed to create ssh config because: {}",
