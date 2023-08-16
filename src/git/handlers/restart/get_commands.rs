@@ -12,7 +12,7 @@ pub fn get_commands(destination: &String, origin: &String) -> Vec<Input> {
 #[cfg(test)]
 mod tests {
     use crate::common::run::Input;
-    use crate::common::str_vec_to_string_vec::str_vec_to_string_vec;
+    use crate::common::traits::as_string_vec::AsStringVec;
     use crate::git::handlers::restart::get_commands::get_commands;
 
     #[test]
@@ -23,25 +23,25 @@ mod tests {
         let expected = vec![
             Input {
                 cmd: String::from("git"),
-                args: str_vec_to_string_vec(vec!["checkout", origin.clone()]),
+                args: vec!["checkout", origin.clone()].as_string_vec(),
                 on_done: None,
                 on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: str_vec_to_string_vec(vec!["pull", "origin", origin.clone()]),
+                args: vec!["pull", "origin", origin.clone()].as_string_vec(),
                 on_done: None,
                 on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: str_vec_to_string_vec(vec!["branch", "-D", destination.clone()]),
+                args: vec!["branch", "-D", destination.clone()].as_string_vec(),
                 on_done: None,
                 on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: str_vec_to_string_vec(vec!["checkout", "-b", destination.clone()]),
+                args: vec!["checkout", "-b", destination.clone()].as_string_vec(),
                 on_done: None,
                 on_error: None,
             },

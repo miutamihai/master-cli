@@ -13,12 +13,12 @@ pub fn build_input(args: Vec<String>) -> Input {
 #[cfg(test)]
 mod tests {
     use crate::common::run::Input;
-    use crate::common::str_vec_to_string_vec::str_vec_to_string_vec;
+    use crate::common::traits::as_string_vec::AsStringVec;
     use crate::git::handlers::restart::build_input::build_input;
 
     #[test]
     fn build_input_test() {
-        let args = str_vec_to_string_vec(vec!["checkout", "master"]);
+        let args = vec!["checkout", "master"].as_string_vec();
 
         let expected = Input {
             cmd: String::from("git"),
