@@ -20,11 +20,17 @@ pub fn inline(name: &String, value: &String, config: Config) {
         ConfigNames::GitPersonalCredsEmail => {
             copy.git.personal_credentials.email = value.clone();
         }
+        ConfigNames::GitPersonalCredsSshKey => {
+            copy.git.personal_credentials.ssh_key = value.clone();
+        }
         ConfigNames::GitWorkCredsName => {
             copy.git.work_credentials.name = value.clone();
         }
         ConfigNames::GitWorkCredsEmail => {
             copy.git.work_credentials.email = value.clone();
+        }
+        ConfigNames::GitWorkCredsSshKey => {
+            copy.git.work_credentials.ssh_key = value.clone();
         }
     };
 
