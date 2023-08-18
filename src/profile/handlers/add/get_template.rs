@@ -9,8 +9,6 @@ pub fn get_template() -> String {
 
     builder.append(format!("# Replace {} with your own values\n", placeholder));
     builder.append("\n");
-    builder.append("# This one must match the values present in the \"name\" field\n");
-    builder.append(format!("[profiles.{}]\n", placeholder));
     builder.append("# The name to use for the profile\n");
     builder.append(format!("name = \"{}\"\n", placeholder));
 

@@ -18,12 +18,7 @@ fn default() -> Config {
         current_profile: Profile {
             name: value.clone(),
         },
-        profiles: HashMap::from([(
-            value.clone(),
-            Profile {
-                name: value.clone(),
-            },
-        )]),
+        profiles: HashMap::new(),
         git: Git {
             work_dir: value.clone(),
             work_credentials: GitCredentials {

@@ -30,7 +30,7 @@ fn main() {
             config::handle::handle(name, value, config);
         }
         Profile(command) => {
-            profile::match_command::match_command(command);
+            profile::match_command::match_command(command, config);
         }
     }
 }
