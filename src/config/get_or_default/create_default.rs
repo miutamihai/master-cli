@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use std::fs;
 use std::fs::File;
 use std::io::Write;
 
+use crate::common::ensure_parent_dir::ensure_parent_dir;
 use log::info;
 
 use crate::common::exit_with_errors::exit_with_errors;
@@ -37,11 +37,10 @@ fn default() -> Config {
 
 pub fn create_default() -> std::io::Result<()> {
     let path = config_path();
-    if let Some(parent) = &path.parent() {
-        if fs::create_dir_all(parent).is_err() {
-            exit_with_errors("Failed to create config directory")
-        }
-    }
+    ensure_parent_dir(
+        &path,
+        Some(String::from("Failed to create config directory")),
+    );
 
     match File::create(&path) {
         Ok(mut file) => {

@@ -1,3 +1,4 @@
+use crate::common::ensure_parent_dir::ensure_parent_dir;
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::config::config_path::config_folder;
 use log::info;
@@ -16,11 +17,15 @@ fn build_path() -> std::io::Result<PathBuf> {
     let path = config_folder();
     let file_name = get_file_name()?;
 
-    Ok(path.join(file_name))
+    Ok(path.join("ssh_configs").join(file_name))
 }
 
 pub fn write(content: String) -> std::io::Result<PathBuf> {
     let path = build_path()?;
+    ensure_parent_dir(
+        &path,
+        Some(String::from("Failed to create ssh_configs directory")),
+    );
 
     match File::create(&path) {
         Ok(mut file) => {
