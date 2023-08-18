@@ -18,7 +18,7 @@ fn add_profile(config: &mut Config, profile: Profile) {
 }
 
 fn set_current_profile(config: &mut Config, profile: Profile) {
-    config.current_profile = profile;
+    config.current_profile = profile.name;
 }
 
 fn log(profile: Profile) {

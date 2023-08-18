@@ -19,6 +19,6 @@ pub struct Git {
 #[derive(Deserialize, Serialize)]
 pub struct Config {
     pub git: Git,
-    pub current_profile: Profile,
+    pub current_profile: String,
     pub profiles: HashMap<String, Profile>,
 }

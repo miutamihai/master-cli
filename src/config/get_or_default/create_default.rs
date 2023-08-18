@@ -9,20 +9,12 @@ use crate::common::exit_with_errors::exit_with_errors;
 use crate::config::config_path::config_path;
 use crate::config::model::{Config, Git, GitCredentials};
 use crate::embedded::settings::get::get;
-use crate::profile::Profile;
 
 fn default() -> Config {
     let value = String::from(get().config.default_value);
 
     Config {
-        current_profile: Profile {
-            name: value.clone(),
-            git_credentials: GitCredentials {
-                name: value.clone(),
-                email: value.clone(),
-                ssh_key: value.clone(),
-            },
-        },
+        current_profile: value.clone(),
         profiles: HashMap::new(),
         git: Git {
             work_dir: value.clone(),
