@@ -5,8 +5,5 @@ pub enum Commands {
     #[command(about = "Adds a new profile")]
     Add,
     #[command(about = "Sets the current profile")]
-    Set {
-        #[arg(short, long)]
-        name: String,
-    },
+    Set { name: String },
 }
