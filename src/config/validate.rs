@@ -7,6 +7,8 @@ pub struct Rule {
     pub(crate) value: String,
 }
 
+// This function might be valuable later on
+#[allow(dead_code)]
 pub fn validate(values: Vec<Rule>) {
     let default_value = get().config.default_value;
 
