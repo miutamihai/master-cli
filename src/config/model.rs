@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -15,6 +16,13 @@ pub struct Git {
 }
 
 #[derive(Deserialize, Serialize)]
+pub struct Profile {
+    pub(crate) name: String
+}
+
+#[derive(Deserialize, Serialize)]
 pub struct Config {
     pub git: Git,
+    pub current_profile: Profile,
+    pub profiles: HashMap<String, Profile>
 }

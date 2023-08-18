@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -6,13 +7,21 @@ use log::info;
 
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::config::config_path::config_path;
-use crate::config::model::{Config, Git, GitCredentials};
+use crate::config::model::{Config, Git, GitCredentials, Profile};
 use crate::embedded::settings::get::get;
 
 fn default() -> Config {
     let value = String::from(get().config.default_value);
 
     Config {
+        current_profile: Profile {
+            name: value.clone()
+        },
+        profiles: HashMap::from([
+            (value.clone(), Profile {
+                name: value.clone()
+            })
+        ]),
         git: Git {
             work_dir: value.clone(),
             work_credentials: GitCredentials {
