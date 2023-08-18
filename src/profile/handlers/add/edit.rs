@@ -1,3 +1,4 @@
+use crate::common::remove_toml_comments::remove_toml_comments;
 use edit::{edit_with_builder, Builder};
 
 pub fn edit(template: String) -> std::io::Result<String> {
@@ -5,7 +6,7 @@ pub fn edit(template: String) -> std::io::Result<String> {
     builder = builder.suffix(".toml").to_owned();
 
     match edit_with_builder(template, &builder) {
-        Ok(profile) => Ok(profile),
+        Ok(profile) => Ok(remove_toml_comments(profile)),
         Err(error) => Err(error),
     }
 }
