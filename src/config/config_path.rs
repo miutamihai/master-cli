@@ -1,7 +1,13 @@
 use std::path::PathBuf;
 
 pub fn config_folder() -> PathBuf {
-    dirs::config_local_dir().unwrap().join("mm")
+    let dir = dirs::config_local_dir().unwrap();
+
+    if cfg!(debug_assertions) {
+        dir.join("mm").join("dev")
+    } else {
+        dir.join("mm")
+    }
 }
 
 pub fn config_path() -> PathBuf {
