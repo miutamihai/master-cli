@@ -1,13 +1,12 @@
-use crate::config::model::Config;
 use crate::git::commands::Commands;
 use crate::git::handlers::init::init;
 use crate::git::handlers::pr::pr;
 use crate::git::handlers::restart::restart;
 
-pub fn match_command(command: &Commands, config: Config) {
+pub fn match_command(command: &Commands) {
     match command {
         Commands::Init => {
-            init(config);
+            init();
         }
         Commands::PR => {
             pr();

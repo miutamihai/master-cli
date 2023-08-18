@@ -1,5 +1,6 @@
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::config;
+use crate::config::get::get;
 use crate::config::model::Config;
 use crate::profile::handlers::add::edit::edit;
 use crate::profile::handlers::add::get_template::get_template;
@@ -25,18 +26,18 @@ fn log(profile: Profile) {
     info!("Newly added profile `{}` was set as current", profile.name);
 }
 
-pub fn add(config: Config) {
+pub fn add() {
     let template = get_template();
 
     match edit(template) {
         Ok(editted) => {
             let profile = parse(editted);
-            let mut copy = config;
+            let mut config = get();
 
-            set_current_profile(&mut copy, profile.clone());
-            add_profile(&mut copy, profile.clone());
+            set_current_profile(&mut config, profile.clone());
+            add_profile(&mut config, profile.clone());
 
-            config::write::write(copy, None);
+            config::write::write(config, None);
             log(profile);
         }
         Err(error) => exit_with_errors(error.to_string()),

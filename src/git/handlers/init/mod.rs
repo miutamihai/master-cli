@@ -1,7 +1,6 @@
 use log::info;
 
 use crate::config::current_profile::current_profile;
-use crate::config::model::Config;
 use crate::git::handlers::init::git_config::git_config;
 use crate::git::handlers::init::initialize_repo::initialize_repo;
 use crate::git::handlers::init::ssh_config::setup;
@@ -11,8 +10,8 @@ mod initialize_repo;
 mod ssh_config;
 
 // TODO: Stop passing config everywhere
-pub fn init(config: Config) {
-    let profile = current_profile(&config);
+pub fn init() {
+    let profile = current_profile();
 
     info!("Initializing git repository...");
     initialize_repo();

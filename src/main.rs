@@ -3,7 +3,7 @@ use clap::Parser;
 use crate::cli::Cli;
 use crate::commands::Commands::Profile;
 use crate::commands::Commands::{Config, Git};
-use crate::config::get_or_default::get_or_default;
+use crate::config::ensure_default::ensure_default;
 use crate::setup_logger::setup_logger;
 
 mod cli;
@@ -19,18 +19,18 @@ fn main() {
     setup_logger();
 
     let cli = Cli::parse();
-    let config = get_or_default();
+    ensure_default();
 
     match &cli.command {
         Git(command) => {
-            git::match_command::match_command(command, config);
+            git::match_command::match_command(command);
         }
 
         Config { name, value } => {
-            config::handle::handle(name, value, config);
+            config::handle::handle(name, value);
         }
         Profile(command) => {
-            profile::match_command::match_command(command, config);
+            profile::match_command::match_command(command);
         }
     }
 }
