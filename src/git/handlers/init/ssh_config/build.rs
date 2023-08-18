@@ -9,7 +9,7 @@ pub fn build(key_path: &String) -> String {
     let mut builder = Builder::default();
     let canonical_path = PathBuf::from(key_path).to_string();
 
-    builder.append(format!("Host {}\n", key_path));
+    builder.append(format!("Host *\n"));
     builder.append(format!("\tUser git\n"));
     builder.append(format!("\tIdentityFile {}\n", canonical_path));
     builder.append(format!("\tIdentitiesOnly yes\n"));
