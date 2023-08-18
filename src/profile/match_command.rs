@@ -1,5 +1,6 @@
 use crate::profile::commands::Commands;
 use crate::profile::handlers::add::add;
+use crate::profile::handlers::set::set;
 use log::info;
 
 pub fn match_command(command: &Commands) {
@@ -9,7 +10,8 @@ pub fn match_command(command: &Commands) {
             add();
         }
         Commands::Set { name } => {
-            info!("Setting {} as current profile", name)
+            info!("Setting {} as current profile", name);
+            set(name.clone());
         }
     }
 }

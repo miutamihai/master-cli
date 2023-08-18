@@ -5,6 +5,7 @@ pub mod commands;
 mod handlers;
 pub mod match_command;
 
+// Should find a way of making this directory based too
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Profile {
     pub(crate) name: String,
