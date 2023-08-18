@@ -369,6 +369,7 @@ dependencies = [
  "dirs",
  "edit",
  "fern",
+ "lazy_static",
  "log",
  "rust-embed",
  "serde",
