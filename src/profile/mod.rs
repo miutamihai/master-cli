@@ -4,7 +4,7 @@ pub mod commands;
 mod handlers;
 pub mod match_command;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct Profile {
     pub(crate) name: String,
 }
