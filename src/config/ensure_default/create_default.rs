@@ -7,7 +7,7 @@ use log::info;
 use crate::common::ensure_parent_dir::ensure_parent_dir;
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::config::config_path::config_path;
-use crate::config::model::{Config, Git, GitCredentials};
+use crate::config::model::Config;
 use crate::embedded::settings::get::get;
 
 fn default() -> Config {
@@ -16,19 +16,6 @@ fn default() -> Config {
     Config {
         current_profile: value.clone(),
         profiles: HashMap::new(),
-        git: Git {
-            work_dir: value.clone(),
-            work_credentials: GitCredentials {
-                name: value.clone(),
-                email: value.clone(),
-                ssh_key: value.clone(),
-            },
-            personal_credentials: GitCredentials {
-                name: value.clone(),
-                email: value.clone(),
-                ssh_key: value.clone(),
-            },
-        },
     }
 }
 

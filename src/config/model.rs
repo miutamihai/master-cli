@@ -10,15 +10,7 @@ pub struct GitCredentials {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct Git {
-    pub(crate) work_dir: String,
-    pub(crate) personal_credentials: GitCredentials,
-    pub(crate) work_credentials: GitCredentials,
-}
-
-#[derive(Deserialize, Serialize)]
 pub struct Config {
-    pub git: Git,
     pub current_profile: String,
     pub profiles: HashMap<String, Profile>,
 }
