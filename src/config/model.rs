@@ -2,7 +2,7 @@ use crate::profile::Profile;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct GitCredentials {
     pub(crate) name: String,
     pub(crate) email: String,

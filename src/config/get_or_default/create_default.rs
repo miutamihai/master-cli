@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 
-use crate::common::ensure_parent_dir::ensure_parent_dir;
 use log::info;
 
+use crate::common::ensure_parent_dir::ensure_parent_dir;
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::config::config_path::config_path;
 use crate::config::model::{Config, Git, GitCredentials};
@@ -17,6 +17,11 @@ fn default() -> Config {
     Config {
         current_profile: Profile {
             name: value.clone(),
+            git_credentials: GitCredentials {
+                name: value.clone(),
+                email: value.clone(),
+                ssh_key: value.clone(),
+            },
         },
         profiles: HashMap::new(),
         git: Git {
