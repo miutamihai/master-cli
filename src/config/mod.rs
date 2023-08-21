@@ -7,5 +7,5 @@ pub mod model;
 pub mod names;
 mod parse;
 mod read;
-pub mod validate;
+pub mod validations;
 pub mod write;

@@ -7,7 +7,6 @@ pub struct Rule {
     pub(crate) value: String,
 }
 
-#[allow(dead_code)]
 pub fn validate(values: Vec<Rule>, override_error_message: Option<String>) {
     let default_value = get().config.default_value;
 

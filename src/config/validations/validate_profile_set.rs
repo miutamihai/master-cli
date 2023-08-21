@@ -1,7 +1,7 @@
 use crate::config::get::get;
 use crate::config::model::Config;
 use crate::config::names::ConfigNames;
-use crate::config::validate::{validate, Rule};
+use crate::config::validations::validate::{validate, Rule};
 
 fn build_rules(config: Config) -> Vec<Rule> {
     vec![Rule {
