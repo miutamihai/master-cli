@@ -23,25 +23,25 @@ mod tests {
         let expected = vec![
             Input {
                 cmd: String::from("git"),
-                args: vec!["checkout", origin.clone()].as_string_vec(),
+                args: vec!["checkout", origin].as_string_vec(),
                 on_done: None,
                 on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: vec!["pull", "origin", origin.clone()].as_string_vec(),
+                args: vec!["pull", "origin", origin].as_string_vec(),
                 on_done: None,
                 on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: vec!["branch", "-D", destination.clone()].as_string_vec(),
+                args: vec!["branch", "-D", destination].as_string_vec(),
                 on_done: None,
                 on_error: None,
             },
             Input {
                 cmd: String::from("git"),
-                args: vec!["checkout", "-b", destination.clone()].as_string_vec(),
+                args: vec!["checkout", "-b", destination].as_string_vec(),
                 on_done: None,
                 on_error: None,
             },
