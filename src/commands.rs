@@ -1,5 +1,6 @@
-use crate::git::commands::Commands as GitCommands;
-use crate::profile::commands::Commands as ProfileCommands;
+use super::git::commands::Commands as GitCommands;
+use super::profile::commands::Commands as ProfileCommands;
+use super::term::commands::Commands as TermCommands;
 use clap::Subcommand;
 
 #[derive(Subcommand, Debug)]
@@ -17,4 +18,7 @@ pub enum Commands {
         #[arg(short, long)]
         value: Option<String>,
     },
+    #[command(about = "Commands related to launching terminal sessions")]
+    #[command(subcommand)]
+    Term(TermCommands),
 }
