@@ -1,6 +1,6 @@
 use crate::common::run::Input;
-use crate::git::handlers::restart::build_input::build_input;
-use crate::git::handlers::restart::get_args::get_args;
+use crate::git::restart::build_input::build_input;
+use crate::git::restart::get_args::get_args;
 
 pub fn get_commands(destination: &String, origin: &String) -> Vec<Input> {
     get_args(destination, origin)
@@ -13,7 +13,7 @@ pub fn get_commands(destination: &String, origin: &String) -> Vec<Input> {
 mod tests {
     use crate::common::run::Input;
     use crate::common::traits::as_string_vec::AsStringVec;
-    use crate::git::handlers::restart::get_commands::get_commands;
+    use crate::git::restart::get_commands::get_commands;
 
     #[test]
     fn get_commands_test() {

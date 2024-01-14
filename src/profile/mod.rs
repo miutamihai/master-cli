@@ -1,13 +1,5 @@
-use crate::config::model::GitCredentials;
-use serde_derive::{Deserialize, Serialize};
-
+mod add;
 pub mod commands;
-mod handlers;
 pub mod match_command;
-
-// Should find a way of making this directory based too
-#[derive(Deserialize, Serialize, Clone)]
-pub struct Profile {
-    pub(crate) name: String,
-    pub(crate) git_credentials: GitCredentials,
-}
+mod set;
+pub mod types;

@@ -1,5 +1,5 @@
+use self::get_commands::get_commands;
 use crate::common::run::run;
-use crate::git::handlers::restart::get_commands::get_commands;
 
 mod build_input;
 mod get_args;

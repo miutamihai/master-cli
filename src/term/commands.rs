@@ -1,6 +1,6 @@
 use clap::Subcommand;
 
-use super::handlers::swarm::commands::Commands as SwarmCommands;
+use super::swarm::commands::Commands as SwarmCommands;
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {

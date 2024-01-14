@@ -4,8 +4,6 @@ use clap::Subcommand;
 pub enum Commands {
     #[command(about = "Initialize a new repo, with credentials based on the current profile")]
     Init,
-    #[command(about = "Create a new Pull Request")]
-    PR,
     #[command(about = "Restart destination branch from origin")]
     Restart {
         #[arg(short, long)]

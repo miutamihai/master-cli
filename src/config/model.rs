@@ -1,4 +1,4 @@
-use crate::profile::Profile;
+use crate::profile::types::Profile;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 

@@ -14,7 +14,7 @@ pub fn build_input(args: Vec<String>) -> Input {
 mod tests {
     use crate::common::run::Input;
     use crate::common::traits::as_string_vec::AsStringVec;
-    use crate::git::handlers::restart::build_input::build_input;
+    use crate::git::restart::build_input::build_input;
 
     #[test]
     fn build_input_test() {

@@ -2,8 +2,8 @@ use log::info;
 
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::common::traits::path_as_string::PathAsString;
-use crate::git::handlers::init::ssh_config::build::build;
-use crate::git::handlers::init::ssh_config::write::write;
+use crate::git::init::ssh_config::build::build;
+use crate::git::init::ssh_config::write::write;
 
 mod build;
 mod write;

@@ -1,11 +1,11 @@
+use super::types::Profile;
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::config;
 use crate::config::get::get;
 use crate::config::model::Config;
-use crate::profile::handlers::add::edit::edit;
-use crate::profile::handlers::add::get_template::get_template;
-use crate::profile::handlers::add::parse::parse;
-use crate::profile::Profile;
+use crate::profile::add::edit::edit;
+use crate::profile::add::get_template::get_template;
+use crate::profile::add::parse::parse;
 use log::info;
 
 mod edit;

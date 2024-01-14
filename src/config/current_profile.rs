@@ -1,6 +1,6 @@
 use crate::common::exit_with_errors::exit_with_errors;
 use crate::config::get::get;
-use crate::profile::Profile;
+use crate::profile::types::Profile;
 
 pub fn current_profile() -> Profile {
     let config = get();

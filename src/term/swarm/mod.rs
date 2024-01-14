@@ -1,10 +1,11 @@
 use self::commands::Commands;
 
+mod add;
 pub mod commands;
-mod handlers;
+mod run;
 
-use self::handlers::add::add;
-use self::handlers::run::run;
+use self::add::add;
+use self::run::run;
 
 pub fn match_command(command: &Commands) {
     match command {

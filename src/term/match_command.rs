@@ -1,6 +1,6 @@
 use super::commands::Commands;
-use super::handlers::run::run;
-use super::handlers::swarm;
+use super::run::run;
+use super::swarm;
 
 pub fn match_command(command: &Commands) {
     match command {

@@ -1,9 +1,9 @@
 use log::info;
 
 use crate::config::current_profile::current_profile;
-use crate::git::handlers::init::git_config::git_config;
-use crate::git::handlers::init::initialize_repo::initialize_repo;
-use crate::git::handlers::init::ssh_config::setup;
+use crate::git::init::git_config::git_config;
+use crate::git::init::initialize_repo::initialize_repo;
+use crate::git::init::ssh_config::setup;
 
 mod git_config;
 mod initialize_repo;
