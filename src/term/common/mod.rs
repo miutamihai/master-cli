@@ -1,25 +1,31 @@
 use crate::common::exit_with_errors::exit_with_errors;
-use crate::common::run::{run as run_command, Input};
-use crate::common::traits::command_input_from_string::CommandInputFromString;
+use crate::config::current_profile::current_profile;
 
-pub fn run_term(command: String) {
-    if let Ok(_) = Input::from_string(command.clone()) {
-        // TODO: make this work with other terminals too
-        let kitty_command = Input {
-            cmd: "kitty".to_string(),
-            args: vec![
-                "--hold".to_string(),
-                "sh".to_string(),
-                "-c".to_string(),
-                command,
-            ],
-            on_done: None,
-            on_error: None,
-        };
+use std::path::PathBuf;
+use std::process::Command;
 
-        run_command(kitty_command).ok();
-    } else {
-        exit_with_errors(format!("Failed to run command: {}", command));
+pub fn run_term(command_string: String, working_directory: Option<String>) {
+    let args = [
+        "--hold".to_string(),
+        "sh".to_string(),
+        "-c".to_string(),
+        command_string.clone(),
+    ];
+
+    let mut command = Command::new("kitty");
+
+    if let Some(working_directory) = working_directory {
+        let absolute_path = PathBuf::from(working_directory.clone());
+
+        if let Ok(absolute_path) = absolute_path.canonicalize() {
+            command.current_dir(absolute_path);
+        } else {
+            exit_with_errors(format!("Path invalid: {}", working_directory));
+        }
     }
-}
 
+    command
+        .args(args)
+        .output()
+        .expect(format!("Failed to run command: {}", command_string).as_str());
+}

@@ -1,16 +1,14 @@
 use super::types::Profile;
+use crate::common::edit_toml_template::edit_toml_template;
 use crate::common::exit_with_errors::exit_with_errors;
+use crate::common::parse_toml_string::parse_toml_string;
 use crate::config;
 use crate::config::get::get;
 use crate::config::model::Config;
-use crate::profile::add::edit::edit;
 use crate::profile::add::get_template::get_template;
-use crate::profile::add::parse::parse;
 use log::info;
 
-mod edit;
 mod get_template;
-mod parse;
 
 fn add_profile(config: &mut Config, profile: Profile) {
     let profile_name = profile.name.clone();
@@ -29,9 +27,9 @@ fn log(profile: Profile) {
 pub fn add() {
     let template = get_template();
 
-    match edit(template) {
+    match edit_toml_template(template) {
         Ok(editted) => {
-            let profile = parse(editted);
+            let profile: Profile = parse_toml_string(editted, "Failed to parse new profile");
             let mut config = get();
 
             set_current_profile(&mut config, profile.clone());

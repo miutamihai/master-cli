@@ -4,4 +4,5 @@ use serde_derive::{Deserialize, Serialize};
 pub struct Swarm {
     pub name: String,
     pub commands: Vec<String>,
+    pub working_directory: Option<String>,
 }

@@ -6,5 +6,5 @@ pub fn run_swarm(swarm: Swarm) {
         .commands
         .iter()
         .map(|command| command.clone())
-        .for_each(run_term);
+        .for_each(|command| run_term(command, swarm.working_directory.clone()));
 }
