@@ -1,5 +1,5 @@
 use crate::common::exit_with_errors::exit_with_errors;
-use crate::config::current_profile::current_profile;
+
 
 use std::path::PathBuf;
 use std::process::Command;
