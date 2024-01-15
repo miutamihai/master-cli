@@ -21,12 +21,6 @@ pub fn get_template() -> String {
         "# The absolute path to the private ssh key to use when interacting with the remote\n",
     );
     builder.append(format!("ssh_key = \"{}\"\n", placeholder));
-    builder.append("# The profile's swarms\n");
-    builder.append("[[swarms]]\n");
-    builder.append("# The name to use for the swarm\n");
-    builder.append(format!("name = \"{}\"\n", placeholder));
-    builder.append("# The swarm's commands\n");
-    builder.append(format!("commands = [\"{}\"]\n", placeholder));
 
     match builder.string() {
         Ok(template) => template,

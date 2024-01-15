@@ -1,11 +1,12 @@
 use crate::common::exit_with_errors::exit_with_errors;
-use crate::{config::current_profile::current_profile, profile::types::Profile};
+use crate::config::get::get;
+use crate::config::model::Config;
 
 use super::common::run_swarm;
 use super::types::Swarm;
 
-fn get_swarm(profile: Profile, swarm_name: String) -> Option<Swarm> {
-    profile
+fn get_swarm(config: Config, swarm_name: String) -> Option<Swarm> {
+    config
         .swarms
         .iter()
         .find(|swarm| swarm.name == swarm_name)
@@ -13,9 +14,9 @@ fn get_swarm(profile: Profile, swarm_name: String) -> Option<Swarm> {
 }
 
 pub fn run(swarm_name: String) {
-    let profile = current_profile();
+    let config = get();
 
-    if let Some(swarm) = get_swarm(profile, swarm_name.clone()) {
+    if let Some(swarm) = get_swarm(config, swarm_name.clone()) {
         run_swarm(swarm)
     } else {
         exit_with_errors(format!("Swarm {} does not exist", swarm_name))

@@ -8,18 +8,13 @@ use crate::{
         edit_toml_template::edit_toml_template, exit_with_errors::exit_with_errors,
         parse_toml_string::parse_toml_string,
     },
-    config::{self, current_profile::current_profile, get::get, model::Config},
+    config::{self, get::get, model::Config},
 };
 
 use super::types::Swarm;
 
 fn add_swarm(config: &mut Config, swarm: Swarm) {
-    let mut profile = current_profile();
-    profile.swarms.push(swarm);
-
-    config
-        .profiles
-        .insert(config.current_profile.clone(), profile);
+    config.swarms.push(swarm);
 }
 
 fn log(swarm: Swarm) {

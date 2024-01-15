@@ -16,6 +16,7 @@ fn default() -> Config {
     Config {
         current_profile: value.clone(),
         profiles: HashMap::new(),
+        swarms: vec![],
     }
 }
 
