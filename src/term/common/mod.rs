@@ -41,6 +41,6 @@ pub fn run_term(command_string: String, working_directory: Option<String>) {
 
     command
         .args(args)
-        .output()
+        .spawn()
         .expect(format!("Failed to run command: {}", command_string).as_str());
 }
