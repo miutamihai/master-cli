@@ -1,11 +1,15 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-git clone git@gitlab.com:miutamihai/master-maker-cli.git mm
+last_commit_hash=$(git rev-parse HEAD)
 
-cd mm || exit
+echo $last_commit_hash
 
-cargo build -r
-sudo mv ./target/release/mm /usr/local/bin/mm
-
-cd ..
-rm -rf mm
+# git clone git@gitlab.com:miutamihai/master-maker-cli.git mm
+# 
+# cd mm || exit
+# 
+# cargo build -r
+# sudo mv ./target/release/mm /usr/local/bin/mm
+# 
+# cd ..
+# rm -rf mm
