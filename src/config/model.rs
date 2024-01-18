@@ -9,8 +9,9 @@ pub struct GitCredentials {
     pub(crate) ssh_key: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct Config {
+    pub version: String,
     pub current_profile: String,
     pub profiles: HashMap<String, Profile>,
     pub(crate) swarms: Vec<Swarm>,

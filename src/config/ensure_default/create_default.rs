@@ -11,10 +11,12 @@ use crate::config::model::Config;
 use crate::embedded::settings::get::get;
 
 fn default() -> Config {
-    let value = String::from(get().config.default_value);
+    let value = get().config.default_value;
+    let version = get().config.config_version;
 
     Config {
-        current_profile: value.clone(),
+        version,
+        current_profile: value,
         profiles: HashMap::new(),
         swarms: vec![],
     }

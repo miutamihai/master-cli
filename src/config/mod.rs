@@ -3,6 +3,7 @@ pub mod current_profile;
 pub mod ensure_default;
 pub mod get;
 pub mod handle;
+mod migrations;
 pub mod model;
 pub mod names;
 mod parse;
