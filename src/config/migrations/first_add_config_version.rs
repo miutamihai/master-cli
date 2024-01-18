@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::config::model::GitCredentials;
 use crate::{profile::types::Profile, term::swarm::types::Swarm};
 use serde_derive::{Deserialize, Serialize};
 
@@ -20,10 +21,38 @@ impl Migration for Down {
     fn to_up(previous: Self) -> Self::Up {
         let version = get().config.config_version;
 
+        // These are rewritten because we want compile
+        // time errors if we forget to adjust these
         Self::Up {
             version,
-            swarms: previous.swarms,
-            profiles: previous.profiles,
+            swarms: previous
+                .swarms
+                .iter()
+                .map(|swarm| Swarm {
+                    name: swarm.name.clone(),
+                    working_directory: swarm.working_directory.clone(),
+                    commands: swarm.commands.clone(),
+                })
+                .collect(),
+            profiles: HashMap::from_iter(
+                previous
+                    .profiles
+                    .iter()
+                    .map(|(name, profile)| {
+                        (
+                            name.clone(),
+                            Profile {
+                                name: profile.name.clone(),
+                                git_credentials: GitCredentials {
+                                    name: profile.git_credentials.name.clone(),
+                                    email: profile.git_credentials.email.clone(),
+                                    ssh_key: profile.git_credentials.ssh_key.clone(),
+                                },
+                            },
+                        )
+                    })
+                    .collect::<Vec<(String, Profile)>>(),
+            ),
             current_profile: previous.current_profile,
         }
     }
