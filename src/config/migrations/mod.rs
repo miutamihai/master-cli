@@ -20,12 +20,9 @@ pub trait Migration {
 }
 
 pub fn try_config_migration(config_string: String) -> Result<Current> {
-    let migrations = vec![
-        First::try_migrate(&config_string),
-        Second::try_migrate(&config_string),
-    ];
-
-    let maybe_migrated = migrations.into_iter().find_map(|result| result.ok());
+    let maybe_migrated = vec![First::try_migrate, Second::try_migrate]
+        .iter()
+        .find_map(|func| func(&config_string).ok());
 
     match maybe_migrated {
         Some(migrated) => {
