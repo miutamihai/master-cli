@@ -3,25 +3,23 @@ use std::collections::HashMap;
 use crate::{profile::types::Profile, term::swarm::types::Swarm};
 use serde_derive::{Deserialize, Serialize};
 
-use super::second_rename_version_field::Down as Up;
 use super::Migration;
-use crate::embedded::settings::get::get;
+use crate::config::model::Config;
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Down {
+    pub version: String,
     pub current_profile: String,
     pub profiles: HashMap<String, Profile>,
     pub(crate) swarms: Vec<Swarm>,
 }
 
 impl Migration for Down {
-    type Up = Up;
+    type Up = Config;
 
     fn to_up(previous: Self) -> Self::Up {
-        let version = get().config.config_version;
-
         Self::Up {
-            version,
+            config_version: previous.version,
             swarms: previous.swarms,
             profiles: previous.profiles,
             current_profile: previous.current_profile,
@@ -35,9 +33,9 @@ impl Migration for Down {
         }
     }
 
-    fn try_migrate(string: &String) -> anyhow::Result<crate::config::model::Config> {
+    fn try_migrate(string: &String) -> anyhow::Result<Config> {
         let parsed = Self::parse_string(string)?;
 
-        Ok(Up::to_up(Self::to_up(parsed)))
+        Ok(Self::to_up(parsed))
     }
 }

@@ -1,30 +1,40 @@
 use anyhow::{anyhow, Result};
 
-use first_add_config_version::Previous as First;
+use first_add_config_version::Down as First;
+use second_rename_version_field::Down as Second;
 
 use super::model::Config as Current;
 use super::write::write;
 
 mod first_add_config_version;
+mod second_rename_version_field;
 
 pub trait Migration {
     type Up;
 
-    fn migrate(previous: Self) -> Self::Up;
-    fn parse_string(toml_string: String) -> Result<Self>
+    fn to_up(previous: Self) -> Self::Up;
+    fn try_migrate(string: &String) -> Result<Current>;
+    fn parse_string(toml_string: &String) -> Result<Self>
     where
         Self: Sized;
 }
 
 pub fn try_config_migration(config_string: String) -> Result<Current> {
-    if let Ok(matched_config) = First::parse_string(config_string) {
-        let migrated = First::migrate(matched_config);
-        let clone = migrated.clone();
+    let migrations = vec![
+        First::try_migrate(&config_string),
+        Second::try_migrate(&config_string),
+    ];
 
-        write(clone, Some("Migrated config".to_string()));
+    let maybe_migrated = migrations.into_iter().find_map(|result| result.ok());
 
-        Ok(migrated)
-    } else {
-        Err(anyhow!("Failed to migrate"))
+    match maybe_migrated {
+        Some(migrated) => {
+            let clone = migrated.clone();
+
+            write(clone, Some("Migrated config".to_string()));
+
+            Ok(migrated)
+        }
+        None => Err(anyhow!("Failed to migrate")),
     }
 }

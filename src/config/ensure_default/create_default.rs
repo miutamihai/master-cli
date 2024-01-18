@@ -15,7 +15,7 @@ fn default() -> Config {
     let version = get().config.config_version;
 
     Config {
-        version,
+        config_version: version,
         current_profile: value,
         profiles: HashMap::new(),
         swarms: vec![],
