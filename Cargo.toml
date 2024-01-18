@@ -4,6 +4,8 @@ version = "0.0.1"
 edition = "2021"
 authors = ["Mihai Miuta <miuta.mihai@gmail.com>"]
 description = "CLI to handle a master maker's common tasks"
+repository = "https://gitlab.com/mihaimiuta/master-maker-cli/"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.3.11", features = ["derive"] }
