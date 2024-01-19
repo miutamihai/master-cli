@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 
-use crate::{config::model::GitCredentials, profile::types::Profile};
+use crate::{
+    config::model::GitCredentials,
+    profile::types::Profile,
+    term::swarm::types::{Swarm, SwarmType},
+};
 use serde_derive::{Deserialize, Serialize};
 
-use super::fourth_add_swarm_type::Down as Fourth;
-use super::fourth_add_swarm_type::DownSwarm as Swarm;
 use super::Migration;
 use crate::config::model::Config;
 
@@ -13,6 +15,7 @@ pub struct DownSwarm {
     pub name: String,
     pub commands: Vec<String>,
     pub working_directory: Option<String>,
+    pub prerequisites: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -24,7 +27,7 @@ pub struct Down {
 }
 
 impl Migration for Down {
-    type Up = Fourth;
+    type Up = Config;
 
     fn to_up(&self) -> Self::Up {
         // These are rewritten because we want compile
@@ -38,7 +41,8 @@ impl Migration for Down {
                     name: swarm.name.clone(),
                     working_directory: swarm.working_directory.clone(),
                     commands: swarm.commands.clone(),
-                    prerequisites: None,
+                    prerequisites: swarm.prerequisites.clone(),
+                    swarm_type: SwarmType::Window,
                 })
                 .collect(),
             profiles: HashMap::from_iter(
@@ -73,6 +77,6 @@ impl Migration for Down {
     fn try_migrate(string: &String) -> anyhow::Result<Config> {
         let parsed = Self::parse_string(string)?;
 
-        Ok(parsed.to_up().to_up())
+        Ok(parsed.to_up())
     }
 }

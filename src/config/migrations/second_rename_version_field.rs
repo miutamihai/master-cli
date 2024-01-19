@@ -18,12 +18,12 @@ pub struct Down {
 impl Migration for Down {
     type Up = Third;
 
-    fn to_up(previous: Self) -> Self::Up {
+    fn to_up(&self) -> Self::Up {
         // These are rewritten because we want compile
         // time errors if we forget to adjust these
         Self::Up {
-            config_version: previous.version,
-            swarms: previous
+            config_version: self.version.clone(),
+            swarms: self
                 .swarms
                 .iter()
                 .map(|swarm| Swarm {
@@ -33,8 +33,7 @@ impl Migration for Down {
                 })
                 .collect(),
             profiles: HashMap::from_iter(
-                previous
-                    .profiles
+                self.profiles
                     .iter()
                     .map(|(name, profile)| {
                         (
@@ -51,7 +50,7 @@ impl Migration for Down {
                     })
                     .collect::<Vec<(String, Profile)>>(),
             ),
-            current_profile: previous.current_profile,
+            current_profile: self.current_profile.clone(),
         }
     }
 
@@ -65,6 +64,6 @@ impl Migration for Down {
     fn try_migrate(string: &String) -> anyhow::Result<crate::config::model::Config> {
         let parsed = Self::parse_string(string)?;
 
-        Ok(Third::to_up(Self::to_up(parsed)))
+        Ok(parsed.to_up().to_up().to_up())
     }
 }

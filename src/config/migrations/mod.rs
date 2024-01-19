@@ -8,13 +8,14 @@ use super::model::Config as Current;
 use super::write::write;
 
 mod first_add_config_version;
+mod fourth_add_swarm_type;
 mod second_rename_version_field;
 mod third_add_swarm_prerequisites;
 
 pub trait Migration {
     type Up;
 
-    fn to_up(previous: Self) -> Self::Up;
+    fn to_up(&self) -> Self::Up;
     fn try_migrate(string: &String) -> Result<Current>;
     fn parse_string(toml_string: &String) -> Result<Self>
     where

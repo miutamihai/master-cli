@@ -1,5 +1,5 @@
-use super::common::run_term;
+use super::{common::run_command, swarm::types::SwarmType};
 
 pub fn run(command: String) {
-    run_term(command, None);
+    run_command(command, None, SwarmType::Window);
 }
