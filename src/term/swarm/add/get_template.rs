@@ -15,6 +15,8 @@ pub fn get_template() -> String {
     builder.append(format!("commands = [\"{}\"]\n", placeholder));
     builder.append("# (Optional) Directory to run the swarm in\n");
     builder.append(format!("working_directory = \"{}\"\n", placeholder));
+    builder.append("# (Optional) Prerequisite commands to run before the swarm\n");
+    builder.append(format!("prerequisites = [\"{}\"]\n", placeholder));
 
     match builder.string() {
         Ok(template) => template,

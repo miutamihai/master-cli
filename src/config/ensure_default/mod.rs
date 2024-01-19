@@ -13,7 +13,10 @@ pub fn ensure_default() -> Config {
             Ok(config) => config,
             Err(_) => match try_config_migration(content) {
                 Ok(config) => config,
-                Err(_) => exit_with_errors("Malformed config file"),
+                Err(error) => exit_with_errors(format!(
+                    "Migration failed, malformed config file: {}",
+                    error
+                )),
             },
         },
         Err(_) => match create_default() {

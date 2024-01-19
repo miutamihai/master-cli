@@ -5,4 +5,5 @@ pub struct Swarm {
     pub name: String,
     pub commands: Vec<String>,
     pub working_directory: Option<String>,
+    pub prerequisites: Option<Vec<String>>,
 }
