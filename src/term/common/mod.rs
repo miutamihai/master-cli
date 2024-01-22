@@ -25,6 +25,7 @@ fn get_working_directory(option: Option<String>) -> Option<String> {
 
 fn get_window_args(command_string: &String) -> Vec<String> {
     vec![
+        "--single-instance".to_string(),
         "--hold".to_string(),
         "sh".to_string(),
         "-c".to_string(),
@@ -34,6 +35,7 @@ fn get_window_args(command_string: &String) -> Vec<String> {
 
 fn get_tab_args(command_string: &String) -> Vec<String> {
     vec![
+        "--single-instance".to_string(),
         "@".to_string(),
         "launch".to_string(),
         "--type".to_string(),
