@@ -1,12 +1,12 @@
 use log::{error, info};
 
-use crate::common::exit_with_errors::exit_with_errors;
 use crate::embedded::settings::get::get;
+use crate::{common::exit_with_errors::exit_with_errors, config};
 
 use std::path::PathBuf;
 use std::process::Command;
 
-use super::swarm::types::SwarmType;
+use super::swarm::types::{Swarm, SwarmEnvironment, SwarmType};
 
 fn get_working_directory(option: Option<String>) -> Option<String> {
     let default_value = get().config.default_value;
@@ -23,43 +23,17 @@ fn get_working_directory(option: Option<String>) -> Option<String> {
     }
 }
 
-fn get_window_args(command_string: &String) -> Vec<String> {
-    vec![
-        "--single-instance".to_string(),
-        "--hold".to_string(),
-        "sh".to_string(),
-        "-c".to_string(),
-        command_string.clone(),
-    ]
-}
-
-fn get_tab_args(command_string: &String) -> Vec<String> {
-    vec![
-        "--single-instance".to_string(),
-        "@".to_string(),
-        "launch".to_string(),
-        "--type".to_string(),
-        "tab".to_string(),
-        "sh".to_string(),
-        "-c".to_string(),
-        command_string.clone(),
-    ]
-}
-
-pub fn run_command(
-    command_string: String,
-    working_directory: Option<String>,
-    swarm_type: SwarmType,
-) {
-    let args = match swarm_type {
-        SwarmType::Window => get_window_args(&command_string),
-        SwarmType::Tab => get_tab_args(&command_string),
+pub fn run_command(command_string: String, swarm: Swarm) {
+    let config = config::get::get();
+    let swarm_inputs = config.terminal.get_swarm_input();
+    let args = match swarm.swarm_type {
+        SwarmType::Window => vec![swarm_inputs.window_arguments, vec![command_string]].concat(),
+        SwarmType::Tab => vec![swarm_inputs.tab_arguments, vec![command_string]].concat(),
     };
 
-    // TODO: adapt this for other terminal types
-    let mut command = Command::new("kitty");
+    let mut command = Command::new::<String>(config.terminal.into());
 
-    if let Some(working_directory) = get_working_directory(working_directory) {
+    if let Some(working_directory) = get_working_directory(swarm.working_directory) {
         let absolute_path = PathBuf::from(working_directory.clone());
 
         if let Ok(absolute_path) = absolute_path.canonicalize() {

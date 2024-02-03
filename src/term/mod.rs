@@ -12,3 +12,12 @@ pub enum Terminal {
     Kitty,
     WezTerm,
 }
+
+impl Into<String> for Terminal {
+    fn into(self) -> String {
+        match self {
+            Terminal::Kitty => "kitty".to_string(),
+            Terminal::WezTerm => "wezterm".to_string(),
+        }
+    }
+}
