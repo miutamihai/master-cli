@@ -17,6 +17,8 @@ pub fn get_template() -> String {
     builder.append(format!("working_directory = \"{}\"\n", placeholder));
     builder.append("# (Optional) Prerequisite commands to run before the swarm\n");
     builder.append(format!("prerequisites = [\"{}\"]\n", placeholder));
+    builder.append("# The swarm's type (window or tab)\n");
+    builder.append("swarm_type = \"window\"\n");
 
     match builder.string() {
         Ok(template) => template,
