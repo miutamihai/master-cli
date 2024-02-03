@@ -69,14 +69,6 @@ pub fn run_command(
         }
     }
 
-    // match command.args(args).output() {
-    //     Ok(output) => info!(
-    //         "Ran command successfully: {}",
-    //         from_utf8(&output.stdout).unwrap()
-    //     ),
-    //     Err(error) => error!("Failed to run command: {}", error),
-    // }
-
     match command.args(args).spawn() {
         Ok(child) => {
             info!("Started child process with pid: {}", child.id())

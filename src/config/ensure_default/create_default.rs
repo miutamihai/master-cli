@@ -19,6 +19,7 @@ fn default() -> Config {
         current_profile: value,
         profiles: HashMap::new(),
         swarms: vec![],
+        terminal: crate::term::Terminal::Kitty,
     }
 }
 

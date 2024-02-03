@@ -7,6 +7,7 @@ use third_add_swarm_prerequisites::Down as Third;
 use super::model::Config as Current;
 use super::write::write;
 
+mod fifth_add_terminal;
 mod first_add_config_version;
 mod fourth_add_swarm_type;
 mod second_rename_version_field;

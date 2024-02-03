@@ -73,6 +73,6 @@ impl Migration for Down {
     fn try_migrate(string: &String) -> anyhow::Result<Config> {
         let parsed = Self::parse_string(string)?;
 
-        Ok(parsed.to_up().to_up())
+        Ok(parsed.to_up().to_up().to_up())
     }
 }
