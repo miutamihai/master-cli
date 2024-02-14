@@ -13,9 +13,9 @@ pub enum Terminal {
     WezTerm,
 }
 
-impl Into<String> for Terminal {
-    fn into(self) -> String {
-        match self {
+impl From<Terminal> for String {
+    fn from(val: Terminal) -> Self {
+        match val {
             Terminal::Kitty => "kitty".to_string(),
             Terminal::WezTerm => "wezterm".to_string(),
         }
