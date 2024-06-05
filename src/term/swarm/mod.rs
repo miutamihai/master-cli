@@ -39,7 +39,21 @@ impl SwarmEnvironment for Terminal {
                     "-c".to_string(),
                 ],
             },
-            Terminal::WezTerm => todo!(),
+            Terminal::Wezterm => types::SwarmInput {
+                window_arguments: vec![
+                    "cli".to_string(),
+                    "spawn".to_string(),
+                    "--new-window".to_string(),
+                    "sh".to_string(),
+                    "-c".to_string(),
+                ],
+                tab_arguments: vec![
+                    "cli".to_string(),
+                    "spawn".to_string(),
+                    "sh".to_string(),
+                    "-c".to_string(),
+                ],
+            },
         }
     }
 }

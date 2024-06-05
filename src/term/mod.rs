@@ -10,14 +10,14 @@ pub mod swarm;
 #[serde(rename_all = "snake_case")]
 pub enum Terminal {
     Kitty,
-    WezTerm,
+    Wezterm,
 }
 
 impl From<Terminal> for String {
     fn from(val: Terminal) -> Self {
         match val {
             Terminal::Kitty => "kitty".to_string(),
-            Terminal::WezTerm => "wezterm".to_string(),
+            Terminal::Wezterm => "wezterm".to_string(),
         }
     }
 }

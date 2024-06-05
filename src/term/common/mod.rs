@@ -11,24 +11,15 @@ use super::swarm::types::{Swarm, SwarmEnvironment, SwarmType};
 fn get_working_directory(option: Option<String>) -> Option<String> {
     let default_value = get().config.default_value;
 
-    match option {
-        Some(working_directory) => {
-            if working_directory == default_value {
-                return None;
-            } else {
-                return Some(working_directory);
-            }
-        }
-        None => None,
-    }
+    option.filter(|working_directory| *working_directory != default_value)
 }
 
 pub fn run_command(command_string: String, swarm: Swarm) {
     let config = config::get::get();
     let swarm_inputs = config.terminal.get_swarm_input();
     let args = match swarm.swarm_type {
-        SwarmType::Window => vec![swarm_inputs.window_arguments, vec![command_string]].concat(),
-        SwarmType::Tab => vec![swarm_inputs.tab_arguments, vec![command_string]].concat(),
+        SwarmType::Window => [swarm_inputs.window_arguments, vec![command_string]].concat(),
+        SwarmType::Tab => [swarm_inputs.tab_arguments, vec![command_string]].concat(),
     };
 
     let mut command = Command::new::<String>(config.terminal.into());
@@ -43,7 +34,9 @@ pub fn run_command(command_string: String, swarm: Swarm) {
         }
     }
 
-    match command.args(args).spawn() {
+    let pula = command.args(args);
+    dbg!(&pula);
+    match pula.spawn() {
         Ok(child) => {
             info!("Started child process with pid: {}", child.id())
         }

@@ -37,9 +37,6 @@ pub fn create_default() -> std::io::Result<()> {
 
             file.write_all(content.as_bytes())
         }
-        Err(error) => exit_with_errors(format!(
-            "Failed to create config file because: {}",
-            error.to_string()
-        )),
+        Err(error) => exit_with_errors(format!("Failed to create config file because: {}", error)),
     }
 }
