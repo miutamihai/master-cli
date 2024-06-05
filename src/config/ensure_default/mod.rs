@@ -11,17 +11,13 @@ pub fn ensure_default() -> Config {
     match read() {
         Ok(content) => match parse(content.clone()) {
             Ok(config) => config,
-            Err(error) => {
-                dbg!(error);
-
-                match try_config_migration(content) {
-                    Ok(config) => config,
-                    Err(error) => exit_with_errors(format!(
-                        "Migration failed, malformed config file: {}",
-                        error
-                    )),
-                }
-            }
+            Err(_) => match try_config_migration(content) {
+                Ok(config) => config,
+                Err(error) => exit_with_errors(format!(
+                    "Migration failed, malformed config file: {}",
+                    error
+                )),
+            },
         },
         Err(_) => match create_default() {
             Ok(_) => ensure_default(),

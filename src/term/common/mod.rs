@@ -34,9 +34,7 @@ pub fn run_command(command_string: String, swarm: Swarm) {
         }
     }
 
-    let pula = command.args(args);
-    dbg!(&pula);
-    match pula.spawn() {
+    match command.args(args).spawn() {
         Ok(child) => {
             info!("Started child process with pid: {}", child.id())
         }
