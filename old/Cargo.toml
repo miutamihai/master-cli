@@ -1,0 +1,28 @@
+[package]
+name = "master-makers-cli"
+version = "0.0.3"
+edition = "2021"
+authors = ["Mihai Miuta <miuta.mihai@gmail.com>"]
+description = "CLI to handle a master maker's common tasks"
+repository = "https://gitlab.com/mihaimiuta/master-maker-cli/"
+license = "MIT"
+
+[dependencies]
+clap = { version = "4.3.11", features = ["derive"] }
+fern = { version = "0.6.2", features = ["colored"] }
+log = "0.4.19"
+toml = "0.7.6"
+serde = "1.0.179"
+serde_derive = "1.0.179"
+dirs = "5.0.1"
+rust-embed = "6.8.1"
+edit = "0.1.4"
+string-builder = "0.2.0"
+lazy_static = "1.4.0"
+regex = "1.9.3"
+sha256 = "1.3.0"
+anyhow = "1.0.79"
+
+[[bin]]
+name = "mm"
+path = "src/main.rs"

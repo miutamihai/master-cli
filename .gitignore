@@ -1,5 +1,2 @@
-/target
-/vendor
-.idea
-*.log
-mm
+.zig-cache/
+zig-out

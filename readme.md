@@ -1,4 +1,6 @@
 # Master Maker's CLI
+> Note: Very outdated readme
+
 A Master Maker's CLI meant to help with your day to day tasks.
 
 It features:
