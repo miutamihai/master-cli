@@ -1,6 +1,7 @@
 const std = @import("std");
 const log = @import("../common/log.zig");
 const run_command = @import("../common/run_command.zig").run_command;
+const command_output = @import("../common/run_command.zig").command_output;
 const types = @import("./types.zig");
 const ConfigWithHandle = @import("../config/types.zig").WithHandle;
 const Config = @import("../config/types.zig").Config;
@@ -36,6 +37,27 @@ fn make_ssh_config(allocator: std.mem.Allocator, current_profile: Profile) ![]co
     try file_handle.writeAll(try std.fmt.allocPrint(allocator, "Host *\n\tUser git\n\tIdentityFile {s}\n\tIdentitiesOnly yes\n", .{abs_ssh_config_path}));
 
     return file_path;
+}
+
+fn make_commit_file(allocator: std.mem.Allocator) ![]const u8 {
+    const path = try std.fs.cwd().realpathAlloc(allocator, ".");
+
+    var hasher = Sha256.init(.{});
+
+    hasher.update(path);
+    const digest = hasher.finalResult();
+
+    const file_name = try std.fmt.allocPrint(allocator, "{s}", .{std.fmt.fmtSliceHexLower(&digest)});
+
+    const editor = std.posix.getenv("EDITOR") orelse "vi";
+
+    var editor_process = std.process.Child.init(&[_][]const u8{ editor, file_name }, allocator);
+
+    try editor_process.spawn();
+
+    _ = try editor_process.wait();
+
+    return file_name;
 }
 
 pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle, command: types.GitCommand, verbose: bool) !void {
@@ -75,6 +97,22 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
 
             try logger.log("Recreating destination branch {s}", .{restart_input.destination});
             try run_command(allocator, "git", &[_][]const u8{ "checkout", "-b", restart_input.destination }, .{ .verbose = verbose, .allow_error = null });
+        },
+        .submit => {
+            const current_branch = try command_output(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
+
+            const logger = log.scoped(allocator, .git_submit, .{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = current_branch }} });
+
+            try logger.log("Asking for commit message", .{});
+            const commit_file = try make_commit_file(allocator);
+
+            try logger.log("Commiting changes for branch {s}", .{current_branch});
+            try run_command(allocator, "git", &[_][]const u8{ "commit", "-F", commit_file, "-a" }, .{ .verbose = verbose, .allow_error = false });
+
+            _ = try std.fs.cwd().deleteFile(commit_file);
+
+            try logger.log("Pushing changes to origin", .{});
+            try run_command(allocator, "git", &[_][]const u8{ "push", "origin" }, .{ .verbose = verbose, .allow_error = false });
         },
     }
 }

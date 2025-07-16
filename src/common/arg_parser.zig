@@ -81,6 +81,7 @@ pub fn parse(args: [][:0]u8) !types.Input {
 
                     break :inner_blk git.GitCommand{ .init = .{ .remote = remote } };
                 },
+                .submit => git.GitCommand{ .submit = undefined },
             };
 
             break :blk types.Command{ .git = git_command };
