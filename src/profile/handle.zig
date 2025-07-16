@@ -6,6 +6,7 @@ const ConfigWithHandle = @import("../config/types.zig").WithHandle;
 const Config = @import("../config/types.zig").Config;
 const Profile = @import("../profile/types.zig").Profile;
 
+// TODO: Merge this with the other placeholder
 const PLACEHOLDER_TEXT = "REPLACE_ME";
 
 const ProfileErrors = error{ UnfulfilledPlaceholder, ProfileNotFound };

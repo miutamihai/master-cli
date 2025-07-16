@@ -5,9 +5,12 @@ const types = @import("./types.zig");
 const config = @import("binary_config");
 const profile = @import("../profile/types.zig");
 
+// TODO: Merge this with the other placeholder
+const PLACEHOLDER_TEXT = "REPLACE_ME";
+
 fn generate() types.Config {
     const git_credentials =
-        profile.GitCredentials{ .name = "miutamihai", .email = "mihaimiuta@proton.me", .ssh_key = "~/.ssh/personal" };
+        profile.GitCredentials{ .name = PLACEHOLDER_TEXT, .email = PLACEHOLDER_TEXT, .ssh_key = PLACEHOLDER_TEXT };
 
     const personal_profile = profile.Profile{ .name = "personal", .git_credentials = git_credentials };
 
