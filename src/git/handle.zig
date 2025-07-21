@@ -60,6 +60,23 @@ fn make_commit_file(allocator: std.mem.Allocator) ![]const u8 {
     return file_name;
 }
 
+fn get_default_branch(allocator: std.mem.Allocator) ![]const u8 {
+    const raw = try command_output(allocator, "git", &[_][]const u8{ "remote", "show", "origin" });
+
+    var iterator = std.mem.splitAny(u8, raw, "\n");
+
+    while (iterator.next()) |line| {
+        if (std.mem.indexOf(u8, line, "HEAD branch:") != null) {
+            const len = "HEAD branch:".len;
+
+            return line[len .. line.len - 1];
+        }
+    }
+
+    // Should never be hit
+    return "";
+}
+
 pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle, command: types.GitCommand, verbose: bool) !void {
     switch (command) {
         .init => |init_input| {
@@ -113,6 +130,22 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
 
             try logger.log("Pushing changes to origin", .{});
             try run_command(allocator, "git", &[_][]const u8{ "push", "origin" }, .{ .verbose = verbose, .allow_error = false });
+
+            const remote = try command_output(allocator, "git", &[_][]const u8{ "remote", "-v" });
+
+            if (std.mem.indexOf(u8, remote, "github") != null) {
+                // Look for the gh executable & try to open PR if present
+
+                const gh_exists = (try command_output(allocator, "which", &[_][]const u8{"gh"})).len > 0;
+
+                if (!gh_exists) {
+                    return;
+                }
+
+                const default_branch = try get_default_branch(allocator);
+
+                try run_command(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = verbose, .allow_error = false });
+            }
         },
     }
 }
