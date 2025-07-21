@@ -42,7 +42,7 @@ pub fn command_output(allocator: std.mem.Allocator, program: []const u8, args: [
 
     try child.spawn();
 
-    const maxSize = 1024;
+    const maxSize = 10_000_000;
     var stdout: std.ArrayListUnmanaged(u8) = .empty;
     var stderr: std.ArrayListUnmanaged(u8) = .empty;
 
