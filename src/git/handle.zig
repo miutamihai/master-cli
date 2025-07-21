@@ -69,7 +69,7 @@ fn get_default_branch(allocator: std.mem.Allocator) ![]const u8 {
         if (std.mem.indexOf(u8, line, "HEAD branch:") != null) {
             const len = "HEAD branch:".len;
 
-            return line[len .. line.len - 1];
+            return std.mem.trim(u8, line[(len + 2)..line.len], " ");
         }
     }
 
@@ -141,6 +141,11 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
                 if (!gh_exists) {
                     return;
                 }
+
+                // Ensure that the correct editor is used
+                const editor = std.posix.getenv("EDITOR") orelse "vi";
+
+                try run_command(allocator, "gh", &[_][]const u8{ "config", "set", "editor", editor }, .{ .verbose = verbose, .allow_error = false });
 
                 const default_branch = try get_default_branch(allocator);
 
