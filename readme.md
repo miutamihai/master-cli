@@ -23,5 +23,3 @@ curl https://gitlab.com/miutamihai/master-maker-cli/-/raw/master/install.sh | sh
 mm --help
 ```
 
-
-
