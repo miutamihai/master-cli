@@ -1,0 +1,1 @@
+pub const PLACEHOLDER_TEXT = "REPLACE_ME";

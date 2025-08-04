@@ -4,9 +4,7 @@ const constants = @import("./constants.zig");
 const types = @import("./types.zig");
 const config = @import("binary_config");
 const profile = @import("../profile/types.zig");
-
-// TODO: Merge this with the other placeholder
-const PLACEHOLDER_TEXT = "REPLACE_ME";
+const PLACEHOLDER_TEXT = @import("../common/constants.zig").PLACEHOLDER_TEXT;
 
 fn generate() types.Config {
     const git_credentials =

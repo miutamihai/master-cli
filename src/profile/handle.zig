@@ -5,9 +5,7 @@ const write_config = @import("../config/write.zig").write;
 const ConfigWithHandle = @import("../config/types.zig").WithHandle;
 const Config = @import("../config/types.zig").Config;
 const Profile = @import("../profile/types.zig").Profile;
-
-// TODO: Merge this with the other placeholder
-const PLACEHOLDER_TEXT = "REPLACE_ME";
+const PLACEHOLDER_TEXT = @import("../common/constants.zig").PLACEHOLDER_TEXT;
 
 const ProfileErrors = error{ UnfulfilledPlaceholder, ProfileNotFound };
 
