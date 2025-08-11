@@ -101,6 +101,11 @@ pub fn log(self: Logger, comptime fmt: []const u8, args: anytype) !void {
 
     try self.std_out.writeAll(message_parts.items);
 }
+pub fn plain(self: Logger, comptime fmt: []const u8, args: anytype) !void {
+    const message = try std.fmt.allocPrint(self.allocator, fmt, args);
+
+    _ = try self.std_out.write(message);
+}
 
 fn display_level(self: Logger, level: LogLevel) ![]const u8 {
     var parts = std.ArrayList(u8).init(self.allocator);

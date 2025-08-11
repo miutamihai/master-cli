@@ -3,8 +3,13 @@ const types = @import("../types.zig");
 const git = @import("../git/types.zig");
 const profile = @import("../profile/types.zig");
 const common = @import("../common/types.zig");
+const help = @import("../help.zig");
 
 const ParsingError = error{ UnknownCommand, MalformedInputs };
+
+pub const ParsingResultKind = enum { input, help };
+
+pub const ParsingResult = union(ParsingResultKind) { input: types.Input, help: []const u8 };
 
 fn get_origin_destination_pair(args: [][:0]u8) ?common.OriginDestination {
     var origin_index: usize = 0;
@@ -27,7 +32,11 @@ fn get_origin_destination_pair(args: [][:0]u8) ?common.OriginDestination {
     return common.OriginDestination{ .destination = args[destination_index], .origin = args[origin_index] };
 }
 
-pub fn parse(args: [][:0]u8) !types.Input {
+pub fn parse(args: [][:0]u8) !ParsingResult {
+    if (args.len <= 1) {
+        return .{ .help = help.get(null) };
+    }
+
     const command_string = args[1];
 
     const valid_options = comptime &[_][]const u8{
@@ -58,14 +67,28 @@ pub fn parse(args: [][:0]u8) !types.Input {
         }
     } else false;
 
+    const isHelp = for (args[2..args.len]) |arg| {
+        if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
+            break true;
+        }
+    } else false;
+
     const command = blk: switch (command_enum) {
         .git => {
+            if (args.len <= 2) {
+                return .{ .help = help.get(.{ .git = null }) };
+            }
+
             const command_kind = std.meta.stringToEnum(git.GitCommandKind, args[2]) orelse {
                 return ParsingError.UnknownCommand;
             };
 
             const git_command: git.GitCommand = inner_blk: switch (command_kind) {
                 .restart => {
+                    if (isHelp) {
+                        return .{ .help = help.get(.{ .git = git.GitCommandKind.restart }) };
+                    }
+
                     const pair = get_origin_destination_pair(args) orelse {
                         return ParsingError.MalformedInputs;
                     };
@@ -73,6 +96,10 @@ pub fn parse(args: [][:0]u8) !types.Input {
                     break :inner_blk git.GitCommand{ .restart = pair };
                 },
                 .init => {
+                    if (isHelp) {
+                        return .{ .help = help.get(.{ .git = git.GitCommandKind.init }) };
+                    }
+
                     if (args.len < 4) {
                         return ParsingError.MalformedInputs;
                     }
@@ -81,18 +108,32 @@ pub fn parse(args: [][:0]u8) !types.Input {
 
                     break :inner_blk git.GitCommand{ .init = .{ .remote = remote } };
                 },
-                .submit => git.GitCommand{ .submit = undefined },
+                .submit => {
+                    if (isHelp) {
+                        return .{ .help = help.get(.{ .git = git.GitCommandKind.init }) };
+                    }
+
+                    break :inner_blk git.GitCommand{ .submit = undefined };
+                },
             };
 
             break :blk types.Command{ .git = git_command };
         },
         .profile => {
+            if (args.len <= 2) {
+                return .{ .help = help.get(.{ .profile = null }) };
+            }
+
             const command_kind = std.meta.stringToEnum(profile.ProfileCommandKind, args[2]) orelse {
                 return ParsingError.UnknownCommand;
             };
 
             const profile_command: profile.ProfileCommand = inner_blk: switch (command_kind) {
                 .add => {
+                    if (isHelp) {
+                        return .{ .help = help.get(.{ .profile = profile.ProfileCommandKind.add }) };
+                    }
+
                     if (args.len < 4) {
                         return ParsingError.MalformedInputs;
                     }
@@ -102,6 +143,10 @@ pub fn parse(args: [][:0]u8) !types.Input {
                     break :inner_blk profile.ProfileCommand{ .add = .{ .name = name } };
                 },
                 .set => {
+                    if (isHelp) {
+                        return .{ .help = help.get(.{ .profile = profile.ProfileCommandKind.set }) };
+                    }
+
                     if (args.len < 4) {
                         return ParsingError.MalformedInputs;
                     }
@@ -115,9 +160,13 @@ pub fn parse(args: [][:0]u8) !types.Input {
             break :blk types.Command{ .profile = profile_command };
         },
         .version => {
+            if (isHelp) {
+                return .{ .help = help.get(.{ .version = undefined }) };
+            }
+
             break :blk types.Command{ .version = undefined };
         },
     };
 
-    return .{ .command = command, .verbose = verbose };
+    return .{ .input = .{ .command = command, .verbose = verbose } };
 }

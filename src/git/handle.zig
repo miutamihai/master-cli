@@ -7,6 +7,7 @@ const ConfigWithHandle = @import("../config/types.zig").WithHandle;
 const Config = @import("../config/types.zig").Config;
 const APP_NAME = @import("../config/constants.zig").APP_NAME;
 const Profile = @import("../profile/types.zig").Profile;
+const help = @import("../help.zig");
 
 const Sha256 = std.crypto.hash.sha2.Sha256;
 const ExecutionError = error{ ExitCodeNot0, RepositoryAlreadyInitialized };
