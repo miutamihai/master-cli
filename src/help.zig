@@ -48,7 +48,7 @@ fn getProfileDescription(field: []const u8) []const u8 {
 }
 
 fn makeHelpString(comptime T: type, message: []const u8, comptime getFieldHelp: (fn (field: []const u8) []const u8)) []const u8 {
-    var result = help_header ++ "\n\n" ++ message ++ "\n";
+    var result: []const u8 = help_header ++ "\n\n" ++ message ++ "\n";
 
     const field_names = std.meta.fieldNames(T);
 

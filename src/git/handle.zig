@@ -1,7 +1,7 @@
 const std = @import("std");
 const log = @import("../common/log.zig");
-const run_command = @import("../common/run_command.zig").run_command;
-const command_output = @import("../common/run_command.zig").command_output;
+const runCommand = @import("../common/run_command.zig").runCommand;
+const commandOutput = @import("../common/run_command.zig").commandOutput;
 const types = @import("./types.zig");
 const ConfigWithHandle = @import("../config/types.zig").WithHandle;
 const Config = @import("../config/types.zig").Config;
@@ -62,7 +62,7 @@ fn makeCommitFile(allocator: std.mem.Allocator) ![]const u8 {
 }
 
 fn getDefaultBranch(allocator: std.mem.Allocator) ![]const u8 {
-    const raw = try command_output(allocator, "git", &[_][]const u8{ "remote", "show", "origin" });
+    const raw = try commandOutput(allocator, "git", &[_][]const u8{ "remote", "show", "origin" });
 
     var iterator = std.mem.splitAny(u8, raw, "\n");
 
@@ -92,11 +92,11 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             const current_profile = config_with_handle.config.profiles[config_with_handle.config.current_profile];
             const ssh_config_path = try makeSshConfig(allocator, current_profile);
             try logger.log("Running git init", .{});
-            try run_command(allocator, "git", &[_][]const u8{"init"}, .{ .verbose = verbose, .allow_error = null });
-            try run_command(allocator, "git", &[_][]const u8{ "config", "user.name", current_profile.git_credentials.name }, .{ .verbose = false, .allow_error = false });
-            try run_command(allocator, "git", &[_][]const u8{ "config", "user.email", current_profile.git_credentials.email }, .{ .verbose = false, .allow_error = false });
-            try run_command(allocator, "git", &[_][]const u8{ "config", "core.sshCommand", try std.fmt.allocPrint(allocator, "ssh -F \"{s}\"", .{ssh_config_path}) }, .{ .verbose = false, .allow_error = false });
-            try run_command(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote }, .{ .verbose = false, .allow_error = false });
+            try runCommand(allocator, "git", &[_][]const u8{"init"}, .{ .verbose = verbose, .allow_error = null });
+            try runCommand(allocator, "git", &[_][]const u8{ "config", "user.name", current_profile.git_credentials.name }, .{ .verbose = false, .allow_error = false });
+            try runCommand(allocator, "git", &[_][]const u8{ "config", "user.email", current_profile.git_credentials.email }, .{ .verbose = false, .allow_error = false });
+            try runCommand(allocator, "git", &[_][]const u8{ "config", "core.sshCommand", try std.fmt.allocPrint(allocator, "ssh -F \"{s}\"", .{ssh_config_path}) }, .{ .verbose = false, .allow_error = false });
+            try runCommand(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote }, .{ .verbose = false, .allow_error = false });
         },
         .restart => |restart_input| {
             const logger = log.scoped(allocator, .git_restart, .{ .color_maps = &[_]log.ColorMap{
@@ -105,19 +105,19 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             } });
 
             try logger.log("Checking out to origin {s}", .{restart_input.origin});
-            try run_command(allocator, "git", &[_][]const u8{ "checkout", restart_input.origin }, .{ .verbose = verbose, .allow_error = null });
+            try runCommand(allocator, "git", &[_][]const u8{ "checkout", restart_input.origin }, .{ .verbose = verbose, .allow_error = null });
 
             try logger.log("Deleting old destination branch {s}", .{restart_input.destination});
-            try run_command(allocator, "git", &[_][]const u8{ "branch", "-D", restart_input.destination }, .{ .verbose = verbose, .allow_error = true });
+            try runCommand(allocator, "git", &[_][]const u8{ "branch", "-D", restart_input.destination }, .{ .verbose = verbose, .allow_error = true });
 
             try logger.log("Pulling latest origin branch {s}", .{restart_input.origin});
-            try run_command(allocator, "git", &[_][]const u8{ "pull", "origin", restart_input.origin }, .{ .verbose = verbose, .allow_error = null });
+            try runCommand(allocator, "git", &[_][]const u8{ "pull", "origin", restart_input.origin }, .{ .verbose = verbose, .allow_error = null });
 
             try logger.log("Recreating destination branch {s}", .{restart_input.destination});
-            try run_command(allocator, "git", &[_][]const u8{ "checkout", "-b", restart_input.destination }, .{ .verbose = verbose, .allow_error = null });
+            try runCommand(allocator, "git", &[_][]const u8{ "checkout", "-b", restart_input.destination }, .{ .verbose = verbose, .allow_error = null });
         },
         .submit => {
-            const current_branch = try command_output(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
+            const current_branch = try commandOutput(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
 
             const logger = log.scoped(allocator, .git_submit, .{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = current_branch }} });
 
@@ -125,19 +125,19 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             const commit_file = try makeCommitFile(allocator);
 
             try logger.log("Commiting changes for branch {s}", .{current_branch});
-            try run_command(allocator, "git", &[_][]const u8{ "commit", "-F", commit_file, "-a" }, .{ .verbose = verbose, .allow_error = false });
+            try runCommand(allocator, "git", &[_][]const u8{ "commit", "-F", commit_file, "-a" }, .{ .verbose = verbose, .allow_error = false });
 
             _ = try std.fs.cwd().deleteFile(commit_file);
 
             try logger.log("Pushing changes to origin", .{});
-            try run_command(allocator, "git", &[_][]const u8{ "push", "origin" }, .{ .verbose = verbose, .allow_error = false });
+            try runCommand(allocator, "git", &[_][]const u8{ "push", "origin" }, .{ .verbose = verbose, .allow_error = false });
 
-            const remote = try command_output(allocator, "git", &[_][]const u8{ "remote", "-v" });
+            const remote = try commandOutput(allocator, "git", &[_][]const u8{ "remote", "-v" });
 
             if (std.mem.indexOf(u8, remote, "github") != null) {
                 // Look for the gh executable & try to open PR if present
 
-                const gh_exists = (try command_output(allocator, "which", &[_][]const u8{"gh"})).len > 0;
+                const gh_exists = (try commandOutput(allocator, "which", &[_][]const u8{"gh"})).len > 0;
 
                 if (!gh_exists) {
                     return;
@@ -146,11 +146,11 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
                 // Ensure that the correct editor is used
                 const editor = std.posix.getenv("EDITOR") orelse "vi";
 
-                try run_command(allocator, "gh", &[_][]const u8{ "config", "set", "editor", editor }, .{ .verbose = verbose, .allow_error = false });
+                try runCommand(allocator, "gh", &[_][]const u8{ "config", "set", "editor", editor }, .{ .verbose = verbose, .allow_error = false });
 
                 const default_branch = try getDefaultBranch(allocator);
 
-                try run_command(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = verbose, .allow_error = false });
+                try runCommand(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = verbose, .allow_error = false });
             }
         },
     }
