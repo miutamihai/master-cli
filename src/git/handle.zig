@@ -12,7 +12,7 @@ const help = @import("../help.zig");
 const Sha256 = std.crypto.hash.sha2.Sha256;
 const ExecutionError = error{ ExitCodeNot0, RepositoryAlreadyInitialized };
 
-fn make_ssh_config(allocator: std.mem.Allocator, current_profile: Profile) ![]const u8 {
+fn makeSshConfig(allocator: std.mem.Allocator, current_profile: Profile) ![]const u8 {
     const abs_ssh_config_path = try std.fs.path.resolvePosix(allocator, &[_][]const u8{current_profile.git_credentials.ssh_key});
 
     const app_data_dir = try std.fs.getAppDataDir(allocator, APP_NAME);
@@ -40,7 +40,7 @@ fn make_ssh_config(allocator: std.mem.Allocator, current_profile: Profile) ![]co
     return file_path;
 }
 
-fn make_commit_file(allocator: std.mem.Allocator) ![]const u8 {
+fn makeCommitFile(allocator: std.mem.Allocator) ![]const u8 {
     const path = try std.fs.cwd().realpathAlloc(allocator, ".");
 
     var hasher = Sha256.init(.{});
@@ -61,7 +61,7 @@ fn make_commit_file(allocator: std.mem.Allocator) ![]const u8 {
     return file_name;
 }
 
-fn get_default_branch(allocator: std.mem.Allocator) ![]const u8 {
+fn getDefaultBranch(allocator: std.mem.Allocator) ![]const u8 {
     const raw = try command_output(allocator, "git", &[_][]const u8{ "remote", "show", "origin" });
 
     var iterator = std.mem.splitAny(u8, raw, "\n");
@@ -90,7 +90,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             const logger = log.scoped(allocator, .git_init, .{});
 
             const current_profile = config_with_handle.config.profiles[config_with_handle.config.current_profile];
-            const ssh_config_path = try make_ssh_config(allocator, current_profile);
+            const ssh_config_path = try makeSshConfig(allocator, current_profile);
             try logger.log("Running git init", .{});
             try run_command(allocator, "git", &[_][]const u8{"init"}, .{ .verbose = verbose, .allow_error = null });
             try run_command(allocator, "git", &[_][]const u8{ "config", "user.name", current_profile.git_credentials.name }, .{ .verbose = false, .allow_error = false });
@@ -122,7 +122,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             const logger = log.scoped(allocator, .git_submit, .{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = current_branch }} });
 
             try logger.log("Asking for commit message", .{});
-            const commit_file = try make_commit_file(allocator);
+            const commit_file = try makeCommitFile(allocator);
 
             try logger.log("Commiting changes for branch {s}", .{current_branch});
             try run_command(allocator, "git", &[_][]const u8{ "commit", "-F", commit_file, "-a" }, .{ .verbose = verbose, .allow_error = false });
@@ -148,7 +148,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
 
                 try run_command(allocator, "gh", &[_][]const u8{ "config", "set", "editor", editor }, .{ .verbose = verbose, .allow_error = false });
 
-                const default_branch = try get_default_branch(allocator);
+                const default_branch = try getDefaultBranch(allocator);
 
                 try run_command(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = verbose, .allow_error = false });
             }

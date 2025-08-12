@@ -17,9 +17,9 @@ pub fn main() !void {
         return err;
     };
 
-    const maybeInput = try parser.parse(args);
+    const maybe_input = try parser.parse(args);
 
-    switch (maybeInput) {
+    switch (maybe_input) {
         .help => |help| {
             const logger = log.scoped(arena.allocator(), .help, .{});
 

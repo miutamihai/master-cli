@@ -11,15 +11,15 @@ pub const ParsingResultKind = enum { input, help };
 
 pub const ParsingResult = union(ParsingResultKind) { input: types.Input, help: []const u8 };
 
-inline fn is_verbose(arg: []const u8) bool {
+inline fn isVerbose(arg: []const u8) bool {
     return std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "--verbose");
 }
 
-inline fn is_help(arg: []const u8) bool {
+inline fn isHelp(arg: []const u8) bool {
     return std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help");
 }
 
-fn get_origin_destination_pair(args: [][:0]u8) ?common.OriginDestination {
+fn getOriginDestinationPair(args: [][:0]u8) ?common.OriginDestination {
     var origin_index: usize = 0;
     var destination_index: usize = 0;
 
@@ -47,7 +47,7 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
 
     const command_string = args[1];
 
-    if (is_help(command_string)) {
+    if (isHelp(command_string)) {
         return .{ .help = help.get(null) };
     }
 
@@ -74,13 +74,13 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
     const command_enum = std.meta.stringToEnum(types.CommandKind, command_string) orelse unreachable;
 
     const has_verbose_flag = for (args[2..args.len]) |arg| {
-        if (is_verbose(arg)) {
+        if (isVerbose(arg)) {
             break true;
         }
     } else false;
 
     const has_help_flag = for (args[2..args.len]) |arg| {
-        if (is_help(arg)) {
+        if (isHelp(arg)) {
             break true;
         }
     } else false;
@@ -104,7 +104,7 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
                         return .{ .help = help.get(.{ .git = git.GitCommandKind.restart }) };
                     }
 
-                    const pair = get_origin_destination_pair(args) orelse {
+                    const pair = getOriginDestinationPair(args) orelse {
                         return ParsingError.MalformedInputs;
                     };
 

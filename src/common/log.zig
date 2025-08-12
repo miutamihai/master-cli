@@ -12,7 +12,7 @@ const AnsiCodes = enum {
 
     const Self = @This();
 
-    pub fn to_string(self: Self) []const u8 {
+    pub fn toString(self: Self) []const u8 {
         return switch (self) {
             .cyan => "\x1B[96m",
             .red => "\x1B[91m",
@@ -33,7 +33,7 @@ pub const Colors = enum {
     green,
 };
 
-fn color_to_code(color: Colors) AnsiCodes {
+fn colorToCode(color: Colors) AnsiCodes {
     return switch (color) {
         .cyan => AnsiCodes.cyan,
         .red => AnsiCodes.red,
@@ -79,7 +79,7 @@ pub fn log(self: Logger, comptime fmt: []const u8, args: anytype) !void {
     var message_parts = std.ArrayList(u8).init(self.allocator);
     defer message_parts.deinit();
 
-    try message_parts.appendSlice(try self.display_level(self.config.level));
+    try message_parts.appendSlice(try self.displayLevel(self.config.level));
 
     while (iterator.next()) |word| {
         var part = word;
@@ -107,7 +107,7 @@ pub fn plain(self: Logger, comptime fmt: []const u8, args: anytype) !void {
     _ = try self.std_out.write(message);
 }
 
-fn display_level(self: Logger, level: LogLevel) ![]const u8 {
+fn displayLevel(self: Logger, level: LogLevel) ![]const u8 {
     var parts = std.ArrayList(u8).init(self.allocator);
 
     try parts.appendSlice(try switch (level) {
@@ -128,5 +128,5 @@ fn display_level(self: Logger, level: LogLevel) ![]const u8 {
 }
 
 fn colored(self: Logger, color: Colors, text: []const u8) ![]const u8 {
-    return try std.mem.concat(self.allocator, u8, &[_][]const u8{ color_to_code(color).to_string(), text, AnsiCodes.reset.to_string() });
+    return try std.mem.concat(self.allocator, u8, &[_][]const u8{ colorToCode(color).toString(), text, AnsiCodes.reset.toString() });
 }

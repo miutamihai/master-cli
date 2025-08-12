@@ -9,7 +9,7 @@ const PLACEHOLDER_TEXT = @import("../common/constants.zig").PLACEHOLDER_TEXT;
 
 const ProfileErrors = error{ UnfulfilledPlaceholder, ProfileNotFound };
 
-fn make_profile(allocator: std.mem.Allocator, name: []const u8) !types.Profile {
+fn makeProfile(allocator: std.mem.Allocator, name: []const u8) !types.Profile {
     const placeholder = types.Profile{ .name = name, .git_credentials = .{ .email = PLACEHOLDER_TEXT, .name = PLACEHOLDER_TEXT, .ssh_key = PLACEHOLDER_TEXT } };
 
     const file_name = "temp";
@@ -54,7 +54,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             var new_profiles = std.ArrayList(types.Profile).init(allocator);
 
             try new_profiles.appendSlice(config_with_handle.config.profiles);
-            const new_profile = try make_profile(allocator, profile_input.name);
+            const new_profile = try makeProfile(allocator, profile_input.name);
             try new_profiles.append(new_profile);
 
             const new_config = Config{ .version = config_with_handle.config.version, .profiles = new_profiles.items, .current_profile = new_profiles.items.len - 1 };

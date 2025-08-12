@@ -6,7 +6,7 @@ const CommandKind = enum { profile, git, version };
 
 pub const Commands = union(CommandKind) { profile: ?Profile, git: ?Git, version };
 
-const helpHeader =
+const help_header =
     \\Master Maker's CLI
 ;
 
@@ -17,7 +17,7 @@ const verbose_flag_help =
 ;
 
 fn makeFinalCommandHelpStringNoVerbose(message: []const u8) []const u8 {
-    return helpHeader ++ "\n\n" ++ message ++ "\n";
+    return help_header ++ "\n\n" ++ message ++ "\n";
 }
 
 fn makeFinalCommandHelpString(message: []const u8) []const u8 {
@@ -48,27 +48,25 @@ fn getProfileDescription(field: []const u8) []const u8 {
 }
 
 fn makeHelpString(comptime T: type, message: []const u8, comptime getFieldHelp: (fn (field: []const u8) []const u8)) []const u8 {
-    var result = message;
+    var result = help_header ++ "\n\n" ++ message ++ "\n";
 
-    result = helpHeader ++ "\n\n" ++ result ++ "\n";
+    const field_names = std.meta.fieldNames(T);
 
-    const fieldNames = std.meta.fieldNames(T);
+    var char_count: u8 = 0;
 
-    var charCount: u8 = 0;
-
-    for (fieldNames) |field| {
-        if (field.len > charCount) {
-            charCount = field.len;
+    for (field_names) |field| {
+        if (field.len > char_count) {
+            char_count = field.len;
         }
     }
 
-    for (fieldNames) |field| {
+    for (field_names) |field| {
         const description = getFieldHelp(field);
 
         var space: []const u8 = "    ";
         var index = 0;
 
-        while (index <= charCount - field.len) : (index += 1) {
+        while (index <= char_count - field.len) : (index += 1) {
             space = space ++ " ";
         }
 
