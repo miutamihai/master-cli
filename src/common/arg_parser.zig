@@ -11,6 +11,14 @@ pub const ParsingResultKind = enum { input, help };
 
 pub const ParsingResult = union(ParsingResultKind) { input: types.Input, help: []const u8 };
 
+inline fn is_verbose(arg: []const u8) bool {
+    return std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "--verbose");
+}
+
+inline fn is_help(arg: []const u8) bool {
+    return std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help");
+}
+
 fn get_origin_destination_pair(args: [][:0]u8) ?common.OriginDestination {
     var origin_index: usize = 0;
     var destination_index: usize = 0;
@@ -39,6 +47,10 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
 
     const command_string = args[1];
 
+    if (is_help(command_string)) {
+        return .{ .help = help.get(null) };
+    }
+
     const valid_options = comptime &[_][]const u8{
         @tagName(types.CommandKind.git),
         @tagName(types.CommandKind.profile),
@@ -61,14 +73,14 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
 
     const command_enum = std.meta.stringToEnum(types.CommandKind, command_string) orelse unreachable;
 
-    const verbose = for (args[2..args.len]) |arg| {
-        if (std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "--verbose")) {
+    const has_verbose_flag = for (args[2..args.len]) |arg| {
+        if (is_verbose(arg)) {
             break true;
         }
     } else false;
 
-    const isHelp = for (args[2..args.len]) |arg| {
-        if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
+    const has_help_flag = for (args[2..args.len]) |arg| {
+        if (is_help(arg)) {
             break true;
         }
     } else false;
@@ -80,12 +92,15 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
             }
 
             const command_kind = std.meta.stringToEnum(git.GitCommandKind, args[2]) orelse {
+                if (has_help_flag) {
+                    return .{ .help = help.get(.{ .git = null }) };
+                }
                 return ParsingError.UnknownCommand;
             };
 
             const git_command: git.GitCommand = inner_blk: switch (command_kind) {
                 .restart => {
-                    if (isHelp) {
+                    if (has_help_flag) {
                         return .{ .help = help.get(.{ .git = git.GitCommandKind.restart }) };
                     }
 
@@ -96,7 +111,7 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
                     break :inner_blk git.GitCommand{ .restart = pair };
                 },
                 .init => {
-                    if (isHelp) {
+                    if (has_help_flag) {
                         return .{ .help = help.get(.{ .git = git.GitCommandKind.init }) };
                     }
 
@@ -109,7 +124,7 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
                     break :inner_blk git.GitCommand{ .init = .{ .remote = remote } };
                 },
                 .submit => {
-                    if (isHelp) {
+                    if (has_help_flag) {
                         return .{ .help = help.get(.{ .git = git.GitCommandKind.init }) };
                     }
 
@@ -125,12 +140,16 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
             }
 
             const command_kind = std.meta.stringToEnum(profile.ProfileCommandKind, args[2]) orelse {
+                if (has_help_flag) {
+                    return .{ .help = help.get(.{ .git = null }) };
+                }
+
                 return ParsingError.UnknownCommand;
             };
 
             const profile_command: profile.ProfileCommand = inner_blk: switch (command_kind) {
                 .add => {
-                    if (isHelp) {
+                    if (has_help_flag) {
                         return .{ .help = help.get(.{ .profile = profile.ProfileCommandKind.add }) };
                     }
 
@@ -143,7 +162,7 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
                     break :inner_blk profile.ProfileCommand{ .add = .{ .name = name } };
                 },
                 .set => {
-                    if (isHelp) {
+                    if (has_help_flag) {
                         return .{ .help = help.get(.{ .profile = profile.ProfileCommandKind.set }) };
                     }
 
@@ -160,7 +179,7 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
             break :blk types.Command{ .profile = profile_command };
         },
         .version => {
-            if (isHelp) {
+            if (has_help_flag) {
                 return .{ .help = help.get(.{ .version = undefined }) };
             }
 
@@ -168,5 +187,5 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
         },
     };
 
-    return .{ .input = .{ .command = command, .verbose = verbose } };
+    return .{ .input = .{ .command = command, .verbose = has_verbose_flag } };
 }

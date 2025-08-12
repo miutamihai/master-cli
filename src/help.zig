@@ -10,6 +10,20 @@ const helpHeader =
     \\Master Maker's CLI
 ;
 
+const verbose_flag_help =
+    \\Flags:
+    \\
+    \\    -v, --verbose    Enable verbose logging
+;
+
+fn makeFinalCommandHelpStringNoVerbose(message: []const u8) []const u8 {
+    return helpHeader ++ "\n\n" ++ message ++ "\n";
+}
+
+fn makeFinalCommandHelpString(message: []const u8) []const u8 {
+    return comptime makeFinalCommandHelpStringNoVerbose(message) ++ verbose_flag_help ++ "\n";
+}
+
 fn getCommandDescription(field: []const u8) []const u8 {
     return switch (std.meta.stringToEnum(CommandKind, field).?) {
         .profile => "Set the current profile or add a new one",
@@ -33,8 +47,8 @@ fn getProfileDescription(field: []const u8) []const u8 {
     };
 }
 
-fn makeHelpString(comptime T: type, top: []const u8, comptime getFieldHelp: (fn (field: []const u8) []const u8)) []const u8 {
-    var result = top;
+fn makeHelpString(comptime T: type, message: []const u8, comptime getFieldHelp: (fn (field: []const u8) []const u8)) []const u8 {
+    var result = message;
 
     result = helpHeader ++ "\n\n" ++ result ++ "\n";
 
@@ -66,50 +80,96 @@ fn makeHelpString(comptime T: type, top: []const u8, comptime getFieldHelp: (fn 
 
 pub fn get(command: ?Commands) []const u8 {
     if (command == null) {
-        const top: []const u8 =
+        const message: []const u8 =
             \\Usage: mm [command] [options]
             \\Commands:
         ;
 
-        return comptime makeHelpString(CommandKind, top, getCommandDescription);
+        return comptime makeHelpString(CommandKind, message, getCommandDescription);
     }
 
     return switch (command.?) {
         .git => |git| {
             if (git == null) {
-                const top: []const u8 =
+                const message: []const u8 =
+                    \\Commands related to the git integration
+                    \\
                     \\Usage: mm git [command] [options]
                     \\Commands:
                 ;
 
-                return comptime makeHelpString(Git, top, getGitDescription);
+                return comptime makeHelpString(Git, message, getGitDescription);
             }
 
             return switch (git.?) {
-                .init => "Initializes a repository with the current profile's git credentials",
-                .restart => "Restarts the target branch from the base branch",
-                .submit => "Commits & submits the code changes to the remote",
+                .init => {
+                    const message: []const u8 =
+                        \\Initializes a new repository with the current profile's git credentials
+                        \\
+                        \\Usage: mm git init <remote_url>
+                    ;
+
+                    return comptime makeFinalCommandHelpString(message);
+                },
+                .restart => {
+                    const message: []const u8 =
+                        \\Restarts the target branch from the base branch
+                        \\
+                        \\Usage: mm git restart -o <origin_branch> -d <destination_branch>
+                    ;
+
+                    return comptime makeFinalCommandHelpString(message);
+                },
+                .submit => {
+                    const message: []const u8 =
+                        \\Commits & submits the code changes to the remote
+                        \\
+                        \\Usage: mm git submit
+                    ;
+
+                    return comptime makeFinalCommandHelpString(message);
+                },
             };
         },
         .profile => |profile| {
             if (profile == null) {
-                const top: []const u8 =
+                const message: []const u8 =
                     \\Usage: mm profile [command] [options]
                     \\Commands:
                 ;
 
-                return comptime makeHelpString(Profile, top, getProfileDescription);
+                return comptime makeHelpString(Profile, message, getProfileDescription);
             }
 
             return switch (profile.?) {
-                .add => "Adds a new profile",
-                .set => "Sets the input profile as the current one",
+                .add => {
+                    const message: []const u8 =
+                        \\Adds a new profile
+                        \\
+                        \\Usage: mm profile add <profile_name>
+                    ;
+
+                    return comptime makeFinalCommandHelpString(message);
+                },
+                .set => {
+                    const message: []const u8 =
+                        \\Sets the input profile as the current one
+                        \\
+                        \\Usage: mm profile set <profile_name>
+                    ;
+
+                    return comptime makeFinalCommandHelpString(message);
+                },
             };
         },
         .version => {
-            const top: []const u8 = "Usage: mm version";
+            const message: []const u8 =
+                \\Prints the current version and exits
+                \\
+                \\Usage: mm version
+            ;
 
-            return helpHeader ++ "\n\n" ++ top ++ "\n";
+            return comptime makeFinalCommandHelpStringNoVerbose(message);
         },
     };
 }
