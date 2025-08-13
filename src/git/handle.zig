@@ -10,7 +10,7 @@ const Profile = @import("../profile/types.zig").Profile;
 const help = @import("../help.zig");
 
 const Sha256 = std.crypto.hash.sha2.Sha256;
-const ExecutionError = error{ ExitCodeNot0, RepositoryAlreadyInitialized };
+const ExecutionError = error{ ExitCodeNot0, RepositoryAlreadyInitialized, UnstashedChanges };
 
 fn makeSshConfig(allocator: std.mem.Allocator, current_profile: Profile) ![]const u8 {
     const abs_ssh_config_path = try std.fs.path.resolvePosix(allocator, &[_][]const u8{current_profile.git_credentials.ssh_key});
@@ -99,6 +99,12 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             try runCommand(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote }, .{ .verbose = false, .allow_error = false });
         },
         .restart => |restart_input| {
+            const maybe_unstashed = (try commandOutput(allocator, "git", &[_][]const u8{ "status", "-s" })).len != 0;
+
+            if (maybe_unstashed) {
+                return ExecutionError.UnstashedChanges;
+            }
+
             const logger = log.scoped(allocator, .git_restart, .{ .color_maps = &[_]log.ColorMap{
                 log.ColorMap{ .color = log.Colors.magenta, .word = restart_input.origin },
                 log.ColorMap{ .color = log.Colors.magenta, .word = restart_input.destination },
