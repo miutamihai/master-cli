@@ -63,6 +63,10 @@ pub fn init(allocator: std.mem.Allocator, config: Config) Logger {
     return .{ .std_out = std.io.getStdOut(), .allocator = allocator, .config = config, .scope_name = null };
 }
 
+pub fn setConfig(self: *Logger, config: Config) void {
+    self.config = config;
+}
+
 pub fn scoped(allocator: std.mem.Allocator, comptime scope: @Type(.enum_literal), config: Config) Logger {
     var instance = init(allocator, config);
 

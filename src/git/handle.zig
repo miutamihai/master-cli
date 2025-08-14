@@ -191,7 +191,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             try logger.log("Determining the default branch", .{});
             const default_branch = try getDefaultBranch(allocator);
 
-            logger = log.scoped(allocator, .git_main, .{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
+            logger.setConfig(.{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
 
             try logger.log("Moving to branch {s}", .{default_branch});
 
