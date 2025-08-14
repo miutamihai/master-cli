@@ -78,6 +78,26 @@ fn getDefaultBranch(allocator: std.mem.Allocator) ![]const u8 {
     return "";
 }
 
+fn hasUnstashedChanges(allocator: std.mem.Allocator) !bool {
+    const output = try commandOutput(allocator, "git", &[_][]const u8{ "status", "-s" });
+
+    if (output.len == 0) {
+        return false;
+    }
+
+    var lines = std.mem.splitAny(u8, output, "\n");
+
+    while (lines.next()) |line| {
+        const trimmed = std.mem.trim(u8, line, " \t");
+
+        if (std.mem.startsWith(u8, trimmed, "M")) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle, command: types.GitCommand, verbose: bool) !void {
     switch (command) {
         .init => |init_input| {
@@ -99,7 +119,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             try runCommand(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote }, .{ .verbose = false, .allow_error = false });
         },
         .restart => |restart_input| {
-            const maybe_unstashed = (try commandOutput(allocator, "git", &[_][]const u8{ "status", "-s" })).len != 0;
+            const maybe_unstashed = try hasUnstashedChanges(allocator);
 
             if (maybe_unstashed) {
                 return ExecutionError.UnstashedChanges;
