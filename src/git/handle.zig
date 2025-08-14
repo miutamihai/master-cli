@@ -180,15 +180,18 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             }
         },
         .main => {
+            var logger = log.scoped(allocator, .git_main, .{});
+            try logger.log("Checking for unstashed changes", .{});
             const maybe_unstashed = try hasUnstashedChanges(allocator);
 
             if (maybe_unstashed) {
                 return ExecutionError.UnstashedChanges;
             }
 
+            try logger.log("Determining the default branch", .{});
             const default_branch = try getDefaultBranch(allocator);
 
-            const logger = log.scoped(allocator, .git_main, .{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
+            logger = log.scoped(allocator, .git_main, .{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
 
             try logger.log("Moving to branch {s}", .{default_branch});
 
