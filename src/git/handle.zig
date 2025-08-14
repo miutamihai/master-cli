@@ -179,5 +179,24 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
                 try runCommand(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = verbose, .allow_error = false });
             }
         },
+        .main => {
+            const maybe_unstashed = try hasUnstashedChanges(allocator);
+
+            if (maybe_unstashed) {
+                return ExecutionError.UnstashedChanges;
+            }
+
+            const default_branch = try getDefaultBranch(allocator);
+
+            const logger = log.scoped(allocator, .git_main, .{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
+
+            try logger.log("Moving to branch {s}", .{default_branch});
+
+            try runCommand(allocator, "git", &[_][]const u8{ "checkout", default_branch }, .{ .verbose = verbose, .allow_error = false });
+
+            try logger.log("Pulling latest changes for branch {s}", .{default_branch});
+
+            try runCommand(allocator, "git", &[_][]const u8{ "pull", "origin", default_branch }, .{ .verbose = verbose, .allow_error = false });
+        },
     }
 }

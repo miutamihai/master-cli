@@ -130,6 +130,13 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
 
                     break :inner_blk git.GitCommand{ .submit = undefined };
                 },
+                .main => {
+                    if (has_help_flag) {
+                        return .{ .help = help.get(.{ .git = git.GitCommandKind.main }) };
+                    }
+
+                    break :inner_blk git.GitCommand{ .main = undefined };
+                },
             };
 
             break :blk types.Command{ .git = git_command };
