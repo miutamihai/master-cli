@@ -24,7 +24,9 @@ fn makeSshConfig(allocator: std.mem.Allocator, current_profile: Profile) ![]cons
     hasher.update(path);
     const digest = hasher.finalResult();
 
-    const file_name = try std.fmt.allocPrint(allocator, "{s}", .{std.fmt.fmtSliceHexLower(&digest)});
+    var res: []u8 = undefined;
+    res = try std.fmt.hexToBytes(res, &digest);
+    const file_name = res;
 
     const ssh_dir_path = try std.fs.path.resolvePosix(allocator, &[_][]const u8{ app_data_dir, "ssh_configs" });
 
@@ -48,7 +50,9 @@ fn makeCommitFile(allocator: std.mem.Allocator) ![]const u8 {
     hasher.update(path);
     const digest = hasher.finalResult();
 
-    const file_name = try std.fmt.allocPrint(allocator, "{s}", .{std.fmt.fmtSliceHexLower(&digest)});
+    var res: []u8 = undefined;
+    res = try std.fmt.hexToBytes(res, &digest);
+    const file_name = res;
 
     const editor = std.posix.getenv("EDITOR") orelse "vi";
 

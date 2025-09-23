@@ -14,11 +14,13 @@ fn makeProfile(allocator: std.mem.Allocator, name: []const u8) !types.Profile {
 
     const file_name = "temp";
 
-    const json_placeholder = try std.json.stringifyAlloc(allocator, placeholder, .{});
-
     var file_handle = try std.fs.cwd().createFile(file_name, .{ .read = true });
 
-    _ = try file_handle.write(json_placeholder);
+    var buffer: [1024]u8 = undefined;
+    var file_writer: std.fs.File.Writer = file_handle.writer(&buffer);
+    const writer_pointer: *std.io.Writer = &file_writer.interface;
+    try std.json.Stringify.value(placeholder, .{}, writer_pointer);
+    try file_writer.interface.flush();
 
     const editor = std.posix.getenv("EDITOR") orelse "vi";
 
@@ -51,14 +53,14 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
 
             try logger.log("Adding profile {s}", .{profile_input.name});
 
-            var new_profiles = std.ArrayList(types.Profile).init(allocator);
+            var new_profiles = std.ArrayList(types.Profile).empty;
 
-            try new_profiles.appendSlice(config_with_handle.config.profiles);
+            try new_profiles.appendSlice(allocator, config_with_handle.config.profiles);
             const new_profile = try makeProfile(allocator, profile_input.name);
-            try new_profiles.append(new_profile);
+            try new_profiles.append(allocator, new_profile);
 
             const new_config = Config{ .version = config_with_handle.config.version, .profiles = new_profiles.items, .current_profile = new_profiles.items.len - 1 };
-            try write_config(allocator, config_with_handle.file, new_config);
+            try write_config(config_with_handle.file, new_config);
 
             try logger.log("Profile {s} set as the current profile", .{profile_input.name});
         },
@@ -85,7 +87,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
 
             new_config.current_profile = new_index.?;
 
-            try write_config(allocator, config_with_handle.file, new_config);
+            try write_config(config_with_handle.file, new_config);
 
             try logger.log("Profile {s} set as the current profile", .{set_input.name});
         },

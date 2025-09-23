@@ -33,8 +33,12 @@ pub fn read(allocator: std.mem.Allocator) !types.WithHandle {
 
     if (bytes.len == 0) {
         const data = generate();
+        var buffer: [1024]u8 = undefined;
+        var file_writer: std.fs.File.Writer = file.writer(&buffer);
+        const writer_pointer: *std.Io.Writer = &file_writer.interface;
 
-        _ = try file.write(try std.json.stringifyAlloc(allocator, data, .{}));
+        try std.json.Stringify.value(data, .{}, writer_pointer);
+        try file_writer.interface.flush();
 
         return .{ .config = data, .file = file };
     }

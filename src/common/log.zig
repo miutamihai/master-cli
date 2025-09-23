@@ -60,7 +60,7 @@ config: Config,
 scope_name: ?[]const u8,
 
 pub fn init(allocator: std.mem.Allocator, config: Config) Logger {
-    return .{ .std_out = std.io.getStdOut(), .allocator = allocator, .config = config, .scope_name = null };
+    return .{ .std_out = std.fs.File.stdout(), .allocator = allocator, .config = config, .scope_name = null };
 }
 
 pub fn setConfig(self: *Logger, config: Config) void {
@@ -80,10 +80,10 @@ pub fn scoped(allocator: std.mem.Allocator, comptime scope: @Type(.enum_literal)
 pub fn log(self: Logger, comptime fmt: []const u8, args: anytype) !void {
     const message = try std.fmt.allocPrint(self.allocator, fmt, args);
     var iterator = std.mem.splitAny(u8, message, " ");
-    var message_parts = std.ArrayList(u8).init(self.allocator);
-    defer message_parts.deinit();
+    var message_parts = std.ArrayList(u8).empty;
+    defer message_parts.deinit(self.allocator);
 
-    try message_parts.appendSlice(try self.displayLevel(self.config.level));
+    try message_parts.appendSlice(self.allocator, try self.displayLevel(self.config.level));
 
     while (iterator.next()) |word| {
         var part = word;
@@ -98,10 +98,10 @@ pub fn log(self: Logger, comptime fmt: []const u8, args: anytype) !void {
             part = try self.colored(self.config.color_maps[index].color, word);
         }
 
-        try message_parts.append(' ');
-        try message_parts.appendSlice(part);
+        try message_parts.append(self.allocator, ' ');
+        try message_parts.appendSlice(self.allocator, part);
     }
-    try message_parts.append('\n');
+    try message_parts.append(self.allocator, '\n');
 
     try self.std_out.writeAll(message_parts.items);
 }
@@ -112,21 +112,21 @@ pub fn plain(self: Logger, comptime fmt: []const u8, args: anytype) !void {
 }
 
 fn displayLevel(self: Logger, level: LogLevel) ![]const u8 {
-    var parts = std.ArrayList(u8).init(self.allocator);
+    var parts = std.ArrayList(u8).empty;
 
-    try parts.appendSlice(try switch (level) {
+    try parts.appendSlice(self.allocator, try switch (level) {
         .info => self.colored(Colors.cyan, "info"),
         .warn => self.colored(Colors.yellow, "warn"),
         .err => self.colored(Colors.red, "error"),
     });
 
     if (self.scope_name) |scope| {
-        try parts.appendSlice(try self.colored(Colors.green, "("));
-        try parts.appendSlice(try self.colored(Colors.green, scope));
-        try parts.appendSlice(try self.colored(Colors.green, ")"));
+        try parts.appendSlice(self.allocator, try self.colored(Colors.green, "("));
+        try parts.appendSlice(self.allocator, try self.colored(Colors.green, scope));
+        try parts.appendSlice(self.allocator, try self.colored(Colors.green, ")"));
     }
 
-    try parts.appendSlice(":");
+    try parts.appendSlice(self.allocator, ":");
 
     return parts.items;
 }

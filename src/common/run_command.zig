@@ -5,10 +5,10 @@ const ExecutionError = error{ExitCodeNot0};
 const Config = struct { verbose: ?bool, allow_error: ?bool };
 
 fn initProcess(allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) !std.process.Child {
-    var full_args: std.ArrayList([]const u8) = std.ArrayList([]const u8).init(allocator);
+    var full_args = std.ArrayList([]const u8).empty;
 
-    try full_args.append(program);
-    try full_args.appendSlice(args);
+    try full_args.append(allocator, program);
+    try full_args.appendSlice(allocator, args);
 
     return std.process.Child.init(full_args.items, allocator);
 }

@@ -148,7 +148,7 @@ pub fn parse(args: [][:0]u8) !ParsingResult {
 
             const command_kind = std.meta.stringToEnum(profile.ProfileCommandKind, args[2]) orelse {
                 if (has_help_flag) {
-                    return .{ .help = help.get(.{ .git = null }) };
+                    return .{ .help = help.get(.{ .profile = null }) };
                 }
 
                 return ParsingError.UnknownCommand;
