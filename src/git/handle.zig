@@ -19,14 +19,8 @@ fn makeSshConfig(allocator: std.mem.Allocator, current_profile: Profile) ![]cons
 
     const path = try std.fs.cwd().realpathAlloc(allocator, ".");
 
-    var hasher = Sha256.init(.{});
-
-    hasher.update(path);
-    const digest = hasher.finalResult();
-
-    var res: []u8 = undefined;
-    res = try std.fmt.hexToBytes(res, &digest);
-    const file_name = res;
+    var res: [0x100]u8 = undefined;
+    const file_name = std.base64.standard.Encoder.encode(&res, path);
 
     const ssh_dir_path = try std.fs.path.resolvePosix(allocator, &[_][]const u8{ app_data_dir, "ssh_configs" });
 
