@@ -8,6 +8,9 @@ const Config = @import("../config/types.zig").Config;
 const APP_NAME = @import("../config/constants.zig").APP_NAME;
 const Profile = @import("../profile/types.zig").Profile;
 const help = @import("../help.zig");
+const CacheWithHandle = @import("../cache.zig").WithHandle;
+const writeCache = @import("../cache.zig").write;
+const RepositoryData = @import("../cache.zig").RepositoryData;
 
 const Sha256 = std.crypto.hash.sha2.Sha256;
 const ExecutionError = error{ ExitCodeNot0, RepositoryAlreadyInitialized, UnstashedChanges };
@@ -96,7 +99,7 @@ fn hasUnstashedChanges(allocator: std.mem.Allocator) !bool {
     return false;
 }
 
-pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle, command: types.GitCommand, verbose: bool) !void {
+pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle, cache_with_handle: CacheWithHandle, command: types.GitCommand, verbose: bool) !void {
     switch (command) {
         .init => |init_input| {
             const exists = if (std.fs.cwd().access(".git", .{})) true else |_| false;
@@ -186,8 +189,28 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
                 return ExecutionError.UnstashedChanges;
             }
 
-            try logger.log("Determining the default branch", .{});
-            const default_branch = try getDefaultBranch(allocator);
+            const remote_url = try commandOutput(allocator, "git", &[_][]const u8{ "config", "--get", "remote.origin.url" });
+
+            var default_branch: []const u8 = "";
+
+            const maybe_cached_default_branch = cache_with_handle.cache.getByRemoteUrl(remote_url);
+
+            if (maybe_cached_default_branch) |cached_repository_data| {
+                try logger.log("Using cached default branch", .{});
+                default_branch = cached_repository_data.default_branch;
+            } else {
+                try logger.log("Determining the default branch", .{});
+                default_branch = try getDefaultBranch(allocator);
+
+                var new_cache = cache_with_handle.cache;
+                var new_data = std.ArrayList(RepositoryData).empty;
+                try new_data.appendSlice(allocator, new_cache.repository_data);
+                try new_data.append(allocator, RepositoryData{ .remote_url = remote_url, .default_branch = default_branch });
+
+                new_cache.repository_data = new_data.items;
+
+                try writeCache(cache_with_handle.file, new_cache);
+            }
 
             logger.setConfig(.{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
 
