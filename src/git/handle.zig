@@ -39,29 +39,6 @@ fn makeSshConfig(allocator: std.mem.Allocator, current_profile: Profile) ![]cons
     return file_path;
 }
 
-fn makeCommitFile(allocator: std.mem.Allocator) ![]const u8 {
-    const path = try std.fs.cwd().realpathAlloc(allocator, ".");
-
-    var hasher = Sha256.init(.{});
-
-    hasher.update(path);
-    const digest = hasher.finalResult();
-
-    var res: []u8 = undefined;
-    res = try std.fmt.hexToBytes(res, &digest);
-    const file_name = res;
-
-    const editor = std.posix.getenv("EDITOR") orelse "vi";
-
-    var editor_process = std.process.Child.init(&[_][]const u8{ editor, file_name }, allocator);
-
-    try editor_process.spawn();
-
-    _ = try editor_process.wait();
-
-    return file_name;
-}
-
 fn getDefaultBranchFromRemote(allocator: std.mem.Allocator) ![]const u8 {
     const raw = try commandOutput(allocator, "git", &[_][]const u8{ "remote", "show", "origin" });
 
@@ -172,17 +149,15 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             try runCommand(allocator, "git", &[_][]const u8{ "checkout", "-b", destination }, .{ .verbose = verbose, .allow_error = null });
         },
         .submit => {
-            const current_branch = try commandOutput(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
+            const default_branch = try getDefaultBranch(allocator, cache_with_handle);
+            var current_branch = try commandOutput(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
 
-            const logger = log.scoped(allocator, .git_submit, .{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = current_branch }} });
+            current_branch = std.mem.trim(u8, current_branch, " \n");
 
-            try logger.log("Asking for commit message", .{});
-            const commit_file = try makeCommitFile(allocator);
-
-            try logger.log("Commiting changes for branch {s}", .{current_branch});
-            try runCommand(allocator, "git", &[_][]const u8{ "commit", "-F", commit_file, "-a" }, .{ .verbose = verbose, .allow_error = false });
-
-            _ = try std.fs.cwd().deleteFile(commit_file);
+            const logger = log.scoped(allocator, .git_submit, .{ .color_maps = &[_]log.ColorMap{
+                log.ColorMap{ .color = log.Colors.magenta, .word = current_branch },
+                log.ColorMap{ .color = log.Colors.magenta, .word = default_branch },
+            } });
 
             try logger.log("Pushing changes to origin", .{});
             try runCommand(allocator, "git", &[_][]const u8{ "push", "origin" }, .{ .verbose = verbose, .allow_error = false });
@@ -198,14 +173,9 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
                     return;
                 }
 
-                // Ensure that the correct editor is used
-                const editor = std.posix.getenv("EDITOR") orelse "vi";
+                try logger.log("Opening github PR from {s} to {s}", .{ current_branch, default_branch });
 
-                try runCommand(allocator, "gh", &[_][]const u8{ "config", "set", "editor", editor }, .{ .verbose = verbose, .allow_error = false });
-
-                const default_branch = try getDefaultBranchFromRemote(allocator);
-
-                try runCommand(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = verbose, .allow_error = false });
+                try runCommand(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = true, .allow_error = false });
             }
         },
         .main => {
