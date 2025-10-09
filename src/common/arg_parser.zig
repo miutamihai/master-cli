@@ -33,11 +33,14 @@ fn getOriginDestinationPair(args: [][:0]u8) ?common.OriginDestination {
         }
     }
 
-    if (origin_index == 0 or destination_index == 0) {
+    if (destination_index == 0) {
         return null;
     }
 
-    return common.OriginDestination{ .destination = args[destination_index], .origin = args[origin_index] };
+    const destination = args[destination_index];
+    const origin = if (origin_index != 0) args[origin_index] else null;
+
+    return common.OriginDestination{ .destination = destination, .origin = origin };
 }
 
 pub fn parse(args: [][:0]u8) !ParsingResult {

@@ -62,7 +62,7 @@ fn makeCommitFile(allocator: std.mem.Allocator) ![]const u8 {
     return file_name;
 }
 
-fn getDefaultBranch(allocator: std.mem.Allocator) ![]const u8 {
+fn getDefaultBranchFromRemote(allocator: std.mem.Allocator) ![]const u8 {
     const raw = try commandOutput(allocator, "git", &[_][]const u8{ "remote", "show", "origin" });
 
     var iterator = std.mem.splitAny(u8, raw, "\n");
@@ -77,6 +77,31 @@ fn getDefaultBranch(allocator: std.mem.Allocator) ![]const u8 {
 
     // Should never be hit
     return "";
+}
+
+fn getDefaultBranch(allocator: std.mem.Allocator, cache_with_handle: CacheWithHandle) ![]const u8 {
+    const remote_url = try commandOutput(allocator, "git", &[_][]const u8{ "config", "--get", "remote.origin.url" });
+
+    var default_branch: []const u8 = "";
+
+    const maybe_cached_default_branch = cache_with_handle.cache.getByRemoteUrl(remote_url);
+
+    if (maybe_cached_default_branch) |cached_repository_data| {
+        default_branch = cached_repository_data.default_branch;
+    } else {
+        default_branch = try getDefaultBranchFromRemote(allocator);
+
+        var new_cache = cache_with_handle.cache;
+        var new_data = std.ArrayList(RepositoryData).empty;
+        try new_data.appendSlice(allocator, new_cache.repository_data);
+        try new_data.append(allocator, RepositoryData{ .remote_url = remote_url, .default_branch = default_branch });
+
+        new_cache.repository_data = new_data.items;
+
+        try writeCache(cache_with_handle.file, new_cache);
+    }
+
+    return default_branch;
 }
 
 fn hasUnstashedChanges(allocator: std.mem.Allocator) !bool {
@@ -126,22 +151,25 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
                 return ExecutionError.UnstashedChanges;
             }
 
+            const destination = restart_input.destination;
+            const origin = restart_input.origin orelse (try getDefaultBranch(allocator, cache_with_handle));
+
             const logger = log.scoped(allocator, .git_restart, .{ .color_maps = &[_]log.ColorMap{
-                log.ColorMap{ .color = log.Colors.magenta, .word = restart_input.origin },
-                log.ColorMap{ .color = log.Colors.magenta, .word = restart_input.destination },
+                log.ColorMap{ .color = log.Colors.magenta, .word = origin },
+                log.ColorMap{ .color = log.Colors.magenta, .word = destination },
             } });
 
-            try logger.log("Checking out to origin {s}", .{restart_input.origin});
-            try runCommand(allocator, "git", &[_][]const u8{ "checkout", restart_input.origin }, .{ .verbose = verbose, .allow_error = null });
+            try logger.log("Checking out to origin {s}", .{origin});
+            try runCommand(allocator, "git", &[_][]const u8{ "checkout", origin }, .{ .verbose = verbose, .allow_error = null });
 
-            try logger.log("Deleting old destination branch {s}", .{restart_input.destination});
-            try runCommand(allocator, "git", &[_][]const u8{ "branch", "-D", restart_input.destination }, .{ .verbose = verbose, .allow_error = true });
+            try logger.log("Deleting old destination branch {s}", .{destination});
+            try runCommand(allocator, "git", &[_][]const u8{ "branch", "-D", destination }, .{ .verbose = verbose, .allow_error = true });
 
-            try logger.log("Pulling latest origin branch {s}", .{restart_input.origin});
-            try runCommand(allocator, "git", &[_][]const u8{ "pull", "origin", restart_input.origin }, .{ .verbose = verbose, .allow_error = null });
+            try logger.log("Pulling latest origin branch {s}", .{origin});
+            try runCommand(allocator, "git", &[_][]const u8{ "pull", "origin", origin }, .{ .verbose = verbose, .allow_error = null });
 
-            try logger.log("Recreating destination branch {s}", .{restart_input.destination});
-            try runCommand(allocator, "git", &[_][]const u8{ "checkout", "-b", restart_input.destination }, .{ .verbose = verbose, .allow_error = null });
+            try logger.log("Recreating destination branch {s}", .{destination});
+            try runCommand(allocator, "git", &[_][]const u8{ "checkout", "-b", destination }, .{ .verbose = verbose, .allow_error = null });
         },
         .submit => {
             const current_branch = try commandOutput(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
@@ -175,7 +203,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
 
                 try runCommand(allocator, "gh", &[_][]const u8{ "config", "set", "editor", editor }, .{ .verbose = verbose, .allow_error = false });
 
-                const default_branch = try getDefaultBranch(allocator);
+                const default_branch = try getDefaultBranchFromRemote(allocator);
 
                 try runCommand(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = verbose, .allow_error = false });
             }
@@ -189,29 +217,7 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
                 return ExecutionError.UnstashedChanges;
             }
 
-            const remote_url = try commandOutput(allocator, "git", &[_][]const u8{ "config", "--get", "remote.origin.url" });
-
-            var default_branch: []const u8 = "";
-
-            const maybe_cached_default_branch = cache_with_handle.cache.getByRemoteUrl(remote_url);
-
-            if (maybe_cached_default_branch) |cached_repository_data| {
-                try logger.log("Using cached default branch", .{});
-                default_branch = cached_repository_data.default_branch;
-            } else {
-                try logger.log("Determining the default branch", .{});
-                default_branch = try getDefaultBranch(allocator);
-
-                var new_cache = cache_with_handle.cache;
-                var new_data = std.ArrayList(RepositoryData).empty;
-                try new_data.appendSlice(allocator, new_cache.repository_data);
-                try new_data.append(allocator, RepositoryData{ .remote_url = remote_url, .default_branch = default_branch });
-
-                new_cache.repository_data = new_data.items;
-
-                try writeCache(cache_with_handle.file, new_cache);
-            }
-
+            const default_branch = try getDefaultBranch(allocator, cache_with_handle);
             logger.setConfig(.{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
 
             try logger.log("Moving to branch {s}", .{default_branch});
