@@ -1,7 +1,5 @@
 const std = @import("std");
 const log = @import("../common/log.zig");
-const runCommand = @import("../common/run_command.zig").runCommand;
-const commandOutput = @import("../common/run_command.zig").commandOutput;
 const types = @import("./types.zig");
 const ConfigWithHandle = @import("../config/types.zig").WithHandle;
 const Config = @import("../config/types.zig").Config;
@@ -11,6 +9,7 @@ const help = @import("../help.zig");
 const CacheWithHandle = @import("../cache.zig").WithHandle;
 const writeCache = @import("../cache.zig").write;
 const RepositoryData = @import("../cache.zig").RepositoryData;
+const Environment = @import("../common/environment.zig").Environment;
 
 const Sha256 = std.crypto.hash.sha2.Sha256;
 const ExecutionError = error{ ExitCodeNot0, RepositoryAlreadyInitialized, UnstashedChanges };
@@ -39,8 +38,11 @@ fn makeSshConfig(allocator: std.mem.Allocator, current_profile: Profile) ![]cons
     return file_path;
 }
 
-fn getDefaultBranchFromRemote(allocator: std.mem.Allocator) ![]const u8 {
-    const raw = try commandOutput(allocator, "git", &[_][]const u8{ "remote", "show", "origin" });
+fn getDefaultBranchFromRemote(environment: Environment) ![]const u8 {
+    const allocator = environment.allocator;
+    const runner = environment.command_runner;
+
+    const raw = try runner.execute(allocator, "git", &[_][]const u8{ "remote", "show", "origin" });
 
     var iterator = std.mem.splitAny(u8, raw, "\n");
 
@@ -56,8 +58,12 @@ fn getDefaultBranchFromRemote(allocator: std.mem.Allocator) ![]const u8 {
     return "";
 }
 
-fn getDefaultBranch(allocator: std.mem.Allocator, cache_with_handle: CacheWithHandle) ![]const u8 {
-    const remote_url = try commandOutput(allocator, "git", &[_][]const u8{ "config", "--get", "remote.origin.url" });
+fn getDefaultBranch(environment: Environment) ![]const u8 {
+    const allocator = environment.allocator;
+    const runner = environment.command_runner;
+    const cache_with_handle = environment.cache;
+
+    const remote_url = try runner.execute(allocator, "git", &[_][]const u8{ "config", "--get", "remote.origin.url" });
 
     var default_branch: []const u8 = "";
 
@@ -66,7 +72,7 @@ fn getDefaultBranch(allocator: std.mem.Allocator, cache_with_handle: CacheWithHa
     if (maybe_cached_default_branch) |cached_repository_data| {
         default_branch = cached_repository_data.default_branch;
     } else {
-        default_branch = try getDefaultBranchFromRemote(allocator);
+        default_branch = try getDefaultBranchFromRemote(environment);
 
         var new_cache = cache_with_handle.cache;
         var new_data = std.ArrayList(RepositoryData).empty;
@@ -81,8 +87,10 @@ fn getDefaultBranch(allocator: std.mem.Allocator, cache_with_handle: CacheWithHa
     return default_branch;
 }
 
-fn hasUnstashedChanges(allocator: std.mem.Allocator) !bool {
-    const output = try commandOutput(allocator, "git", &[_][]const u8{ "status", "-s" });
+fn hasUnstashedChanges(environment: Environment) !bool {
+    const allocator = environment.allocator;
+    const runner = environment.command_runner;
+    const output = try runner.execute(allocator, "git", &[_][]const u8{ "status", "-s" });
 
     if (output.len == 0) {
         return false;
@@ -101,7 +109,7 @@ fn hasUnstashedChanges(allocator: std.mem.Allocator) !bool {
     return false;
 }
 
-pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle, cache_with_handle: CacheWithHandle, command: types.GitCommand, verbose: bool) !void {
+pub fn handle(environment: Environment, command: types.GitCommand) !void {
     switch (command) {
         .init => |init_input| {
             const exists = if (std.fs.cwd().access(".git", .{})) true else |_| false;
@@ -110,26 +118,32 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
                 return ExecutionError.RepositoryAlreadyInitialized;
             }
 
+            const allocator = environment.allocator;
+            const config = environment.config.config;
             const logger = log.scoped(allocator, .git_init, .{});
 
-            const current_profile = config_with_handle.config.profiles[config_with_handle.config.current_profile];
+            const current_profile = config.profiles[config.current_profile];
             const ssh_config_path = try makeSshConfig(allocator, current_profile);
             try logger.log("Running git init", .{});
-            try runCommand(allocator, "git", &[_][]const u8{"init"}, .{ .verbose = verbose, .allow_error = null });
-            try runCommand(allocator, "git", &[_][]const u8{ "config", "user.name", current_profile.git_credentials.name }, .{ .verbose = false, .allow_error = false });
-            try runCommand(allocator, "git", &[_][]const u8{ "config", "user.email", current_profile.git_credentials.email }, .{ .verbose = false, .allow_error = false });
-            try runCommand(allocator, "git", &[_][]const u8{ "config", "core.sshCommand", try std.fmt.allocPrint(allocator, "ssh -F \"{s}\"", .{ssh_config_path}) }, .{ .verbose = false, .allow_error = false });
-            try runCommand(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote }, .{ .verbose = false, .allow_error = false });
+            const runner = environment.command_runner;
+
+            _ = try runner.execute(allocator, "git", &[_][]const u8{"init"});
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "user.name", current_profile.git_credentials.name });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "user.email", current_profile.git_credentials.email });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "core.sshCommand", try std.fmt.allocPrint(allocator, "ssh -F \"{s}\"", .{ssh_config_path}) });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote });
         },
         .restart => |restart_input| {
-            const maybe_unstashed = try hasUnstashedChanges(allocator);
+            const allocator = environment.allocator;
+
+            const maybe_unstashed = try hasUnstashedChanges(environment);
 
             if (maybe_unstashed) {
                 return ExecutionError.UnstashedChanges;
             }
 
             const destination = restart_input.destination;
-            const origin = restart_input.origin orelse (try getDefaultBranch(allocator, cache_with_handle));
+            const origin = restart_input.origin orelse (try getDefaultBranch(environment));
 
             const logger = log.scoped(allocator, .git_restart, .{ .color_maps = &[_]log.ColorMap{
                 log.ColorMap{ .color = log.Colors.magenta, .word = origin },
@@ -137,20 +151,25 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             } });
 
             try logger.log("Checking out to origin {s}", .{origin});
-            try runCommand(allocator, "git", &[_][]const u8{ "checkout", origin }, .{ .verbose = verbose, .allow_error = null });
+            const runner = environment.command_runner;
+
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", origin });
 
             try logger.log("Deleting old destination branch {s}", .{destination});
-            try runCommand(allocator, "git", &[_][]const u8{ "branch", "-D", destination }, .{ .verbose = verbose, .allow_error = true });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "branch", "-D", destination });
 
             try logger.log("Pulling latest origin branch {s}", .{origin});
-            try runCommand(allocator, "git", &[_][]const u8{ "pull", "origin", origin }, .{ .verbose = verbose, .allow_error = null });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "pull", "origin", origin });
 
             try logger.log("Recreating destination branch {s}", .{destination});
-            try runCommand(allocator, "git", &[_][]const u8{ "checkout", "-b", destination }, .{ .verbose = verbose, .allow_error = null });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", "-b", destination });
         },
         .submit => {
-            const default_branch = try getDefaultBranch(allocator, cache_with_handle);
-            var current_branch = try commandOutput(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
+            const allocator = environment.allocator;
+            const runner = environment.command_runner;
+
+            const default_branch = try getDefaultBranch(environment);
+            var current_branch = try runner.execute(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
 
             current_branch = std.mem.trim(u8, current_branch, " \n");
 
@@ -160,14 +179,14 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
             } });
 
             try logger.log("Pushing changes to origin", .{});
-            try runCommand(allocator, "git", &[_][]const u8{ "push", "origin" }, .{ .verbose = verbose, .allow_error = false });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "push", "origin" });
 
-            const remote = try commandOutput(allocator, "git", &[_][]const u8{ "remote", "-v" });
+            const remote = try runner.execute(allocator, "git", &[_][]const u8{ "remote", "-v" });
 
             if (std.mem.indexOf(u8, remote, "github") != null) {
                 // Look for the gh executable & try to open PR if present
 
-                const gh_exists = (try commandOutput(allocator, "which", &[_][]const u8{"gh"})).len > 0;
+                const gh_exists = (try runner.execute(allocator, "which", &[_][]const u8{"gh"})).len > 0;
 
                 if (!gh_exists) {
                     return;
@@ -175,28 +194,31 @@ pub fn handle(allocator: std.mem.Allocator, config_with_handle: ConfigWithHandle
 
                 try logger.log("Opening github PR from {s} to {s}", .{ current_branch, default_branch });
 
-                try runCommand(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" }, .{ .verbose = true, .allow_error = false });
+                _ = try runner.execute(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" });
             }
         },
         .main => {
+            const allocator = environment.allocator;
+            const runner = environment.command_runner;
+
             var logger = log.scoped(allocator, .git_main, .{});
             try logger.log("Checking for unstashed changes", .{});
-            const maybe_unstashed = try hasUnstashedChanges(allocator);
+            const maybe_unstashed = try hasUnstashedChanges(environment);
 
             if (maybe_unstashed) {
                 return ExecutionError.UnstashedChanges;
             }
 
-            const default_branch = try getDefaultBranch(allocator, cache_with_handle);
+            const default_branch = try getDefaultBranch(environment);
             logger.setConfig(.{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
 
             try logger.log("Moving to branch {s}", .{default_branch});
 
-            try runCommand(allocator, "git", &[_][]const u8{ "checkout", default_branch }, .{ .verbose = verbose, .allow_error = false });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", default_branch });
 
             try logger.log("Pulling latest changes for branch {s}", .{default_branch});
 
-            try runCommand(allocator, "git", &[_][]const u8{ "pull", "origin", default_branch }, .{ .verbose = verbose, .allow_error = false });
+            _ = try runner.execute(allocator, "git", &[_][]const u8{ "pull", "origin", default_branch });
         },
     }
 }

@@ -68,9 +68,9 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
-    const exe_unit_tests = b.addTest(.{
-        .root_module = exe_mod,
-    });
+    const test_mod = b.createModule(.{ .root_source_file = b.path("src/tests.zig"), .target = target });
+
+    const exe_unit_tests = b.addTest(.{ .root_module = test_mod });
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 

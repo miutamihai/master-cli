@@ -5,6 +5,9 @@ const git = @import("./git/handle.zig");
 const profile = @import("./profile/handle.zig");
 const config = @import("./config/read.zig");
 const cache = @import("./cache.zig");
+const Environment = @import("./common/environment.zig").Environment;
+const CommandRunner = @import("./common/run_command.zig").Command;
+const CommandInterface = @import("./common/run_command.zig").CommandInterface;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -15,6 +18,9 @@ pub fn main() !void {
 
     const config_with_handle = try config.read(allocator);
     const cache_with_handle = try cache.read(allocator);
+
+    var runner = CommandRunner.init();
+    const environment = Environment{ .allocator = allocator, .config = config_with_handle, .cache = cache_with_handle, .command_runner = &runner.interface };
 
     const args = std.process.argsAlloc(allocator) catch |err| {
         std.debug.print("Failed to allocate arguments\n", .{});
@@ -32,7 +38,7 @@ pub fn main() !void {
         .input => |input| {
             switch (input.command) {
                 .git => |git_command| {
-                    try git.handle(allocator, config_with_handle, cache_with_handle, git_command, input.verbose);
+                    try git.handle(environment, git_command);
                 },
                 .profile => |profile_command| {
                     try profile.handle(allocator, config_with_handle, profile_command);

@@ -1,58 +1,64 @@
 const std = @import("std");
 
-const ExecutionError = error{ExitCodeNot0};
+const MAX_OUTPUT_SIZE = 10_000_000;
+
+const ExecutionError = error{ExitCodeNot0} || error{OutOfMemory} || std.process.Child.SpawnError || std.process.Child.RunError;
 
 const Config = struct { verbose: ?bool, allow_error: ?bool };
 
-fn initProcess(allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) !std.process.Child {
-    var full_args = std.ArrayList([]const u8).empty;
+pub const CommandInterface = struct {
+    const Self = @This();
 
-    try full_args.append(allocator, program);
-    try full_args.appendSlice(allocator, args);
+    interface: *const fn (*Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8,
 
-    return std.process.Child.init(full_args.items, allocator);
-}
+    pub fn execute(interface: *Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8 {
+        return interface.*.interface(interface, allocator, program, args);
+    }
+};
 
-pub fn runCommand(allocator: std.mem.Allocator, program: []const u8, args: []const []const u8, config: ?Config) !void {
-    var child = try initProcess(allocator, program, args);
+pub const Command = struct {
+    const Self = @This();
 
-    const verbose = config.?.verbose == true;
+    interface: CommandInterface,
 
-    if (!verbose) {
-        child.stderr_behavior = .Ignore;
-        child.stdout_behavior = .Ignore;
+    pub fn init() Self {
+        return Self{ .interface = CommandInterface{ .interface = execute } };
     }
 
-    try child.spawn();
+    pub fn execute(interface: *CommandInterface, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8 {
+        const command: *Command = @fieldParentPtr("interface", interface);
 
-    const exit_code = try child.wait();
-
-    const allow_error = config.?.allow_error == true;
-
-    if (exit_code.Exited != 0 and !allow_error) {
-        return ExecutionError.ExitCodeNot0;
-    }
-}
-
-pub fn commandOutput(allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ![]const u8 {
-    var child = try initProcess(allocator, program, args);
-
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Pipe;
-
-    try child.spawn();
-
-    const max_size = 10_000_000;
-    var stdout: std.ArrayListUnmanaged(u8) = .empty;
-    var stderr: std.ArrayListUnmanaged(u8) = .empty;
-
-    _ = try child.collectOutput(allocator, &stdout, &stderr, max_size);
-
-    const exit_code = try child.wait();
-
-    if (exit_code.Exited != 0) {
-        return ExecutionError.ExitCodeNot0;
+        return command.*.runCommand(allocator, program, args);
     }
 
-    return try stdout.toOwnedSlice(allocator);
-}
+    fn runCommand(_: Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8 {
+        var argv = std.ArrayList([]const u8).empty;
+        defer argv.deinit(allocator);
+
+        try argv.append(allocator, program);
+        try argv.appendSlice(allocator, args);
+
+        var child = std.process.Child.init(argv.items, allocator);
+
+        child.stdout_behavior = .Pipe;
+        child.stderr_behavior = .Pipe;
+
+        try child.spawn();
+
+        var stdout: std.ArrayListUnmanaged(u8) = .empty;
+        var stderr: std.ArrayListUnmanaged(u8) = .empty;
+
+        defer stdout.deinit(allocator);
+        defer stderr.deinit(allocator);
+
+        _ = try child.collectOutput(allocator, &stdout, &stderr, MAX_OUTPUT_SIZE);
+
+        const exit_code = try child.wait();
+
+        if (exit_code.Exited != 0) {
+            return ExecutionError.ExitCodeNot0;
+        }
+
+        return stdout.items[0..];
+    }
+};
