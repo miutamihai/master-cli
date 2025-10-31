@@ -6,6 +6,7 @@ const AnsiCodes = enum {
     yellow,
     magenta,
     green,
+    pink,
 
     escape,
     reset,
@@ -19,6 +20,7 @@ const AnsiCodes = enum {
             .yellow => "\x1B[93m",
             .magenta => "\x1B[95m",
             .green => "\x1B[92m",
+            .pink => "\x1B[38;5;205m",
             .escape => "\x33",
             .reset => "\x1B[0m",
         };
@@ -31,6 +33,7 @@ pub const Colors = enum {
     yellow,
     magenta,
     green,
+    pink,
 };
 
 fn colorToCode(color: Colors) AnsiCodes {
@@ -40,12 +43,14 @@ fn colorToCode(color: Colors) AnsiCodes {
         .yellow => AnsiCodes.yellow,
         .magenta => AnsiCodes.magenta,
         .green => AnsiCodes.green,
+        .pink => AnsiCodes.pink,
     };
 }
 
 pub const LogLevel = enum {
     info,
     warn,
+    verbose,
     err,
 };
 
@@ -117,6 +122,7 @@ fn displayLevel(self: Logger, level: LogLevel) ![]const u8 {
     try parts.appendSlice(self.allocator, try switch (level) {
         .info => self.colored(Colors.cyan, "info"),
         .warn => self.colored(Colors.yellow, "warn"),
+        .verbose => self.colored(Colors.pink, "verbose"),
         .err => self.colored(Colors.red, "error"),
     });
 

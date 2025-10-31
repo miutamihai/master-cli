@@ -109,7 +109,13 @@ fn hasUnstashedChanges(environment: Environment) !bool {
     return false;
 }
 
-pub fn handle(environment: Environment, command: types.GitCommand) !void {
+fn maybeLog(logger: log, output: []const u8) !void {
+    if (output.len > 0) {
+        try logger.log("{s}", .{output});
+    }
+}
+
+pub fn handle(environment: Environment, command: types.GitCommand, verbose: bool) !void {
     switch (command) {
         .init => |init_input| {
             const exists = if (std.fs.cwd().access(".git", .{})) true else |_| false;
@@ -127,11 +133,21 @@ pub fn handle(environment: Environment, command: types.GitCommand) !void {
             try logger.log("Running git init", .{});
             const runner = environment.command_runner;
 
-            _ = try runner.execute(allocator, "git", &[_][]const u8{"init"});
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "user.name", current_profile.git_credentials.name });
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "user.email", current_profile.git_credentials.email });
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "core.sshCommand", try std.fmt.allocPrint(allocator, "ssh -F \"{s}\"", .{ssh_config_path}) });
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote });
+            if (verbose) {
+                const verbose_logger = log.scoped(allocator, .git_init, .{ .level = .verbose });
+
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{"init"}));
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "config", "user.name", current_profile.git_credentials.name }));
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "config", "user.email", current_profile.git_credentials.email }));
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "config", "core.sshCommand", try std.fmt.allocPrint(allocator, "ssh -F \"{s}\"", .{ssh_config_path}) }));
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote }));
+            } else {
+                _ = try runner.execute(allocator, "git", &[_][]const u8{"init"});
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "user.name", current_profile.git_credentials.name });
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "user.email", current_profile.git_credentials.email });
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "config", "core.sshCommand", try std.fmt.allocPrint(allocator, "ssh -F \"{s}\"", .{ssh_config_path}) });
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "remote", "add", "origin", init_input.remote });
+            }
         },
         .restart => |restart_input| {
             const allocator = environment.allocator;
@@ -150,51 +166,34 @@ pub fn handle(environment: Environment, command: types.GitCommand) !void {
                 log.ColorMap{ .color = log.Colors.magenta, .word = destination },
             } });
 
-            try logger.log("Checking out to origin {s}", .{origin});
             const runner = environment.command_runner;
 
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", origin });
+            if (verbose) {
+                const verbose_logger = log.scoped(allocator, .git_restart, .{ .level = .verbose });
 
-            try logger.log("Deleting old destination branch {s}", .{destination});
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "branch", "-D", destination });
+                try logger.log("Checking out to origin {s}", .{origin});
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "checkout", origin }));
 
-            try logger.log("Pulling latest origin branch {s}", .{origin});
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "pull", "origin", origin });
+                try logger.log("Deleting old destination branch {s}", .{destination});
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "branch", "-D", destination }));
 
-            try logger.log("Recreating destination branch {s}", .{destination});
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", "-b", destination });
-        },
-        .submit => {
-            const allocator = environment.allocator;
-            const runner = environment.command_runner;
+                try logger.log("Pulling latest origin branch {s}", .{origin});
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "pull", "origin", origin }));
 
-            const default_branch = try getDefaultBranch(environment);
-            var current_branch = try runner.execute(allocator, "git", &[_][]const u8{ "branch", "--show-current" });
+                try logger.log("Recreating destination branch {s}", .{destination});
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "checkout", "-b", destination }));
+            } else {
+                try logger.log("Checking out to origin {s}", .{origin});
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", origin });
 
-            current_branch = std.mem.trim(u8, current_branch, " \n");
+                try logger.log("Deleting old destination branch {s}", .{destination});
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "branch", "-D", destination });
 
-            const logger = log.scoped(allocator, .git_submit, .{ .color_maps = &[_]log.ColorMap{
-                log.ColorMap{ .color = log.Colors.magenta, .word = current_branch },
-                log.ColorMap{ .color = log.Colors.magenta, .word = default_branch },
-            } });
+                try logger.log("Pulling latest origin branch {s}", .{origin});
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "pull", "origin", origin });
 
-            try logger.log("Pushing changes to origin", .{});
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "push", "origin" });
-
-            const remote = try runner.execute(allocator, "git", &[_][]const u8{ "remote", "-v" });
-
-            if (std.mem.indexOf(u8, remote, "github") != null) {
-                // Look for the gh executable & try to open PR if present
-
-                const gh_exists = (try runner.execute(allocator, "which", &[_][]const u8{"gh"})).len > 0;
-
-                if (!gh_exists) {
-                    return;
-                }
-
-                try logger.log("Opening github PR from {s} to {s}", .{ current_branch, default_branch });
-
-                _ = try runner.execute(allocator, "gh", &[_][]const u8{ "pr", "create", "-B", default_branch, "-e" });
+                try logger.log("Recreating destination branch {s}", .{destination});
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", "-b", destination });
             }
         },
         .main => {
@@ -212,13 +211,25 @@ pub fn handle(environment: Environment, command: types.GitCommand) !void {
             const default_branch = try getDefaultBranch(environment);
             logger.setConfig(.{ .color_maps = &[_]log.ColorMap{log.ColorMap{ .color = log.Colors.magenta, .word = default_branch }} });
 
-            try logger.log("Moving to branch {s}", .{default_branch});
+            if (verbose) {
+                const verbose_logger = log.scoped(allocator, .git_main, .{ .level = .verbose });
 
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", default_branch });
+                try logger.log("Moving to branch {s}", .{default_branch});
 
-            try logger.log("Pulling latest changes for branch {s}", .{default_branch});
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "checkout", default_branch }));
 
-            _ = try runner.execute(allocator, "git", &[_][]const u8{ "pull", "origin", default_branch });
+                try logger.log("Pulling latest changes for branch {s}", .{default_branch});
+
+                try maybeLog(verbose_logger, try runner.execute(allocator, "git", &[_][]const u8{ "pull", "origin", default_branch }));
+            } else {
+                try logger.log("Moving to branch {s}", .{default_branch});
+
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "checkout", default_branch });
+
+                try logger.log("Pulling latest changes for branch {s}", .{default_branch});
+
+                _ = try runner.execute(allocator, "git", &[_][]const u8{ "pull", "origin", default_branch });
+            }
         },
     }
 }

@@ -1,4 +1,5 @@
 const std = @import("std");
+const log = @import("../common/log.zig");
 
 const MAX_OUTPUT_SIZE = 10_000_000;
 
@@ -31,6 +32,7 @@ pub const Command = struct {
         return command.*.runCommand(allocator, program, args);
     }
 
+    // TODO: Pass stdout & stderr in as to avoid leaking memory
     fn runCommand(_: Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8 {
         var argv = std.ArrayList([]const u8).empty;
         defer argv.deinit(allocator);
@@ -47,9 +49,6 @@ pub const Command = struct {
 
         var stdout: std.ArrayListUnmanaged(u8) = .empty;
         var stderr: std.ArrayListUnmanaged(u8) = .empty;
-
-        defer stdout.deinit(allocator);
-        defer stderr.deinit(allocator);
 
         _ = try child.collectOutput(allocator, &stdout, &stderr, MAX_OUTPUT_SIZE);
 

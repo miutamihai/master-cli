@@ -36,7 +36,6 @@ fn getGitDescription(field: []const u8) []const u8 {
     return switch (std.meta.stringToEnum(Git, field).?) {
         .init => "Initializes a repository with the current profile's git credentials",
         .restart => "Restarts the target branch from the base branch",
-        .submit => "Commits & submits the code changes to the remote",
         .main => "Checks out to the default branch and updates it",
     };
 }
@@ -115,15 +114,6 @@ pub fn get(command: ?Commands) []const u8 {
                         \\Restarts the target branch from the base branch
                         \\
                         \\Usage: mm git restart -o <origin_branch> -d <destination_branch>
-                    ;
-
-                    return comptime makeFinalCommandHelpString(message);
-                },
-                .submit => {
-                    const message: []const u8 =
-                        \\Commits & submits the code changes to the remote
-                        \\
-                        \\Usage: mm git submit
                     ;
 
                     return comptime makeFinalCommandHelpString(message);

@@ -38,7 +38,7 @@ pub fn main() !void {
         .input => |input| {
             switch (input.command) {
                 .git => |git_command| {
-                    try git.handle(environment, git_command);
+                    try git.handle(environment, git_command, input.verbose);
                 },
                 .profile => |profile_command| {
                     try profile.handle(allocator, config_with_handle, profile_command);
