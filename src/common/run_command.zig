@@ -3,17 +3,15 @@ const log = @import("../common/log.zig");
 
 const MAX_OUTPUT_SIZE = 10_000_000;
 
-const ExecutionError = error{ExitCodeNot0} || error{OutOfMemory} || std.process.Child.SpawnError || std.process.Child.RunError;
-
-const Config = struct { verbose: ?bool, allow_error: ?bool };
+const ExecutionError = error{ExitCodeNot0};
 
 pub const CommandInterface = struct {
     const Self = @This();
 
-    interface: *const fn (*Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8,
+    interface: *const fn (*Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8, allow_error: bool) anyerror![]const u8,
 
-    pub fn execute(interface: *Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8 {
-        return interface.*.interface(interface, allocator, program, args);
+    pub fn execute(interface: *Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8, allow_error: bool) anyerror![]const u8 {
+        return interface.*.interface(interface, allocator, program, args, allow_error);
     }
 };
 
@@ -26,14 +24,15 @@ pub const Command = struct {
         return Self{ .interface = CommandInterface{ .interface = execute } };
     }
 
-    pub fn execute(interface: *CommandInterface, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8 {
+    pub fn execute(interface: *CommandInterface, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8, allow_error: bool) anyerror![]const u8 {
         const command: *Command = @fieldParentPtr("interface", interface);
 
-        return command.*.runCommand(allocator, program, args);
+        return command.*.runCommand(allocator, program, args, allow_error);
     }
 
     // TODO: Pass stdout & stderr in as to avoid leaking memory
-    fn runCommand(_: Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8) ExecutionError![]const u8 {
+    // Also rethink returning stdout on error case
+    fn runCommand(_: Self, allocator: std.mem.Allocator, program: []const u8, args: []const []const u8, allow_error: bool) anyerror![]const u8 {
         var argv = std.ArrayList([]const u8).empty;
         defer argv.deinit(allocator);
 
@@ -50,11 +49,17 @@ pub const Command = struct {
         var stdout: std.ArrayListUnmanaged(u8) = .empty;
         var stderr: std.ArrayListUnmanaged(u8) = .empty;
 
+        defer stderr.deinit(allocator);
+
         _ = try child.collectOutput(allocator, &stdout, &stderr, MAX_OUTPUT_SIZE);
 
         const exit_code = try child.wait();
 
-        if (exit_code.Exited != 0) {
+        if (exit_code.Exited != 0 and !allow_error) {
+            const err_logger = log.init(allocator, .{ .level = .err });
+
+            try err_logger.log("{s}", .{stderr.items});
+
             return ExecutionError.ExitCodeNot0;
         }
 
